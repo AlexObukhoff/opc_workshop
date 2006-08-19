@@ -1,0 +1,7 @@
+LIBRARY	OPCServer.dll
+
+EXPORTS
+   CreateNewOPCServerObject
+   DestroyOPCServerObject
+  
+

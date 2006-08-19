@@ -1,0 +1,1 @@
+This program is designed for testing of basic functionality of OPCWorkshop client library.
