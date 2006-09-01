@@ -19,6 +19,8 @@
  ***************************************************************************/
 #pragma once
 
+#define _CRT_SECURE_NO_DEPRECATE
+
 #ifndef STRICT
 #define STRICT
 #endif
@@ -48,7 +50,11 @@
 #include <atlstr.h>
 #include <atlsync.h>
 using namespace ATL;
-#include <atlcomtime.h>
+
+#pragma warning( push )
+#pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
+	#include <ATLComTime.h>
+#pragma warning( pop ) 
 
 #include "RWmonitor.h"
 #include "filetime.h"

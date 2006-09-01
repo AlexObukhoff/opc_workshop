@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "stdafx.h"
-#include "resource.h"       // main symbols
+//#include "resource.h"       // main symbols
 
 #include "ag_thread.h"
 #include "NameIndex.h"

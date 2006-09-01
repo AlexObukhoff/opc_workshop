@@ -20,7 +20,7 @@
 
 // OPCServer.cpp : Implementation of COPCServer
 #include "stdafx.h"
-#include "resource.h"       // main symbols
+//#include "resource.h"       // main symbols
 
 #include "ag_thread.h"
 #include "NameIndex.h"

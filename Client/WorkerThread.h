@@ -68,7 +68,7 @@ class COPCDataImportEvent
 {
 public:
 	
-	enum e_direction { input = 0, output = 1 } ;
+	enum e_direction { dirInput = 0, dirOutput = 1 };
 
 	bool RepeatLastValue;
 	unsigned param_id; // Индекс параметра в таблице параметров
@@ -81,7 +81,7 @@ public:
 	unsigned session_id;
 	unsigned source_id;
 
-	enum e_direction direction;
+	e_direction direction;
 
 	COPCDataImportEvent(COPCDataImportEvent &ev) {
 		param_id = ev.param_id;
@@ -101,7 +101,7 @@ public:
 		RepeatLastValue = false;
 		session_id = 0;
 		source_id = 0;
-		direction = e_direction::input;
+		direction = dirInput;
 	}
 
 	~COPCDataImportEvent() {	}

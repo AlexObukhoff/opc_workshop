@@ -5,9 +5,15 @@
 #endif
 
 #include <Windows.h>
-#include <ATLComTime.h>
-#include <AtlComCli.h>
-#include <AtlSync.h>
+
+#pragma warning( push )
+#pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
+	#include <ATLComTime.h>
+
+	#include <AtlComCli.h>
+	#include <AtlSync.h>
+#pragma warning( pop ) 
+
 #include <assert.h>
 
 #include <vector>

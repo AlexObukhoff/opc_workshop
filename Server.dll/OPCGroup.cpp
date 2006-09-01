@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include "stdafx.h"
-#include "resource.h"       // main symbols
+//#include "resource.h"       // main symbols
 
 #include "ag_thread.h"
 #include "opc.h"

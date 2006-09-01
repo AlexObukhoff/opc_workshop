@@ -95,7 +95,8 @@ HRESULT STDMETHODCALLTYPE CIEnumOPCItemAttributes::Next(
 	if (ppItemArray == NULL || (celt != 1 && pceltFetched == NULL))
 		return E_POINTER;
 
-	for( size_t i = 0; i < celt; ++i )
+	size_t i;
+	for( i = 0; i < celt; ++i )
 	{
 		if( cur_index >= items.size() ) break;
 		ppItemArray[i] = Copy( items[cur_index] );

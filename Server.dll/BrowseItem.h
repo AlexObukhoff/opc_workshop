@@ -26,6 +26,12 @@
 class CItemForBrowse
 {
 public:
+	CItemForBrowse()
+	{
+		type = VT_EMPTY;
+		dwAccessRights = OPC_READABLE;
+		handle = 0;
+	}
 	CItemForBrowse( OPCHANDLE h, LPCTSTR n, VARTYPE t, DWORD write = OPC_READABLE)
 	{
 		handle = h;
