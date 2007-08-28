@@ -48,7 +48,7 @@ public:
 	{
 		ZeroMemory(&m_ServerStatus, sizeof(OPCSERVERSTATUS));
 		CoFileTimeNow( & m_ServerStatus.ftStartTime );
-		m_ServerStatus.szVendorInfo = L"Alexey Obukhov";
+		m_ServerStatus.szVendorInfo = L"Alexey Obukhov & Denis Kovalev";
 		m_ServerStatus.dwServerState = OPC_STATUS_NOCONFIG;
 		m_ServerStatus.dwBandWidth = 0xFFFFFFFF;
 		m_ServerStatus.wMajorVersion = 2;
@@ -81,8 +81,25 @@ public:
 		if( pPercentDeadband )
 			if( *pPercentDeadband < 0. || *pPercentDeadband > 100. ) return E_INVALIDARG;
 
-		CString gname = CW2T(szName);
-		if( gname == _T("") ) return E_INVALIDARG;
+		CString gname;
+		/////////////////////////////////////////////////
+		// Added By Ahmad Mostafavi
+		if( szName == NULL || CString( CW2T( szName )).IsEmpty() )
+		{
+			DWORD uCounter = 0;
+			CString tsName;
+			do
+			{
+				tsName.Format( _T("Group%03d"), ++uCounter );
+			} while ( m_GroupNameIndex.find( tsName ) != m_GroupNameIndex.end() );
+			gname = tsName;
+		}
+		// End added By Ahmad Mostafavi
+		/////////////////////////////////////////////////
+		else 
+		{
+			gname = CW2T(szName);
+		}
 
 		COpcGroupItem *grpItem = new COpcGroupItem();
 		HRESULT hr = grpItem->m_Group->SetState( &dwRequestedUpdateRate, pRevisedUpdateRate, &bActive, 

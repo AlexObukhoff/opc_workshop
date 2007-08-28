@@ -38,12 +38,12 @@ static COPCDataTranslator *g_DataTranslator = NULL;
 
 extern "C" 
 {
-	/*! Фабрика классов для объекта OPCServer */
+	/*! Class fabric for OPCServer objects */
 	ExportClass COPCServerObject* WINAPI CreateNewOPCServerObject(void)
 	{
 		return ::new COPCServerObjectImpl();
 	}
-	/*! Фабрика классов для объекта OPCServer */
+	/*! Destroyer for OPCServer objects */
 	ExportClass int WINAPI DestroyOPCServerObject(COPCServerObject* server)
 	{
 		if( server != NULL ) {
@@ -57,7 +57,7 @@ extern "C"
 COPCServerObjectImpl::COPCServerObjectImpl(void)
 {
 	if( !g_DataTranslator )
-		g_DataTranslator= new COPCDataTranslator();
+		g_DataTranslator = new COPCDataTranslator();
 }
 
 WORD COPCServerObjectImpl::QualityGood() 
@@ -80,11 +80,10 @@ FILETIME COPCServerObjectImpl::FILETIME_NULL(void)
 COPCServerObjectImpl::~COPCServerObjectImpl(void)
 {
 	if( g_DataTranslator ) {
-		delete g_DataTranslator; 
+		delete g_DataTranslator;
 		g_DataTranslator = NULL;
 	}
 }
-
 
 /// Установить имя объекта сервера
 void COPCServerObjectImpl::setServerProgID(LPCTSTR progID)
@@ -130,8 +129,7 @@ int COPCServerObjectImpl::StartServer(OPCSERVERSTATE state)
 		my_CF.serverAdd();
 	
 	my_CF.CreateServer();
-	if( g_Server != NULL )
-		g_Server->m_ServerStatus.dwServerState = state;
+	SetServerState( state );
 
 	return FAILED(hr);
 }

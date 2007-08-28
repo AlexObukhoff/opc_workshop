@@ -35,28 +35,29 @@
 class COPCServerObject
 {
 public:
-	/// Установить имя объекта сервера
+	/// Set server name ( e.g. "OPCWorkshop.DemoServer" )
 	virtual void setServerProgID(LPCTSTR progID) = 0;
 
-	/// установить CLSID сервера 
+	/// set CLSID of server 
 	virtual void setServerCLSID(REFCLSID progID) = 0;
 
-	/// зарегистрировать сервер в системе
+	/// Register a server in system
 	virtual int RegisterServer(void) = 0;
 
-	/// резрегистрировать сервер в системе
+	/// Unregister a server in system
 	virtual int UnregisterServer(void) = 0;
 
-    /// запустить сервер
+    /// To start a server
 	virtual int StartServer(OPCSERVERSTATE state = OPC_STATUS_NOCONFIG) = 0;
 	
-    /// отстановить процесс сервера
+    /// To stop process of a server
 	virtual int StopServer(void) = 0;
 
 	/// 
 	virtual void SetServerState(OPCSERVERSTATE state) = 0;
 
-	/// указать серверу разделитель в именах параметров
+	/// to specify to a server a divider in names of parameters 
+	///   by default it is dot.
 	virtual void SetDelimeter( const char *ch ) = 0;
 
 	/// добавить тег в базу сервера
@@ -64,7 +65,7 @@ public:
 	///     Возвращаемое значение - внутренний хэндл или -1 в случае, если такой тэг уже существует
 	virtual int AddTag( LPCTSTR name, VARTYPE type, bool readOnly = true) = 0;
 
-	/// передать значение параметра
+	/// Set parametr value
 	virtual bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, const VARIANT &value ) = 0;
 	virtual bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, int value ) = 0;
 	virtual bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, float value ) = 0;
@@ -73,7 +74,7 @@ public:
 	virtual bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, float* value, unsigned count ) = 0;
 	virtual bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, double* value, unsigned count ) = 0;
 
-	/// передать значение параметра
+	/// Set parametr value
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, const VARIANT &value ) = 0;
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, int value ) = 0;
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, float value ) = 0;
@@ -82,11 +83,11 @@ public:
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, float* value, unsigned count ) = 0;
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, double* value, unsigned count ) = 0;
 
-	/// указать серверу интерфейс по которому сообщать об изменении параметров базы
+	/// To specify to a server the interface on which to inform on change of parameters of base
 	virtual void setDataReceiver( COPCReceiveData *receiver) = 0;
 
 public:
-	// константы 
+	// constants
 	virtual WORD QualityGood(void) = 0;
 	virtual WORD QualityBad(void) = 0;
 	virtual FILETIME FILETIME_NULL(void) = 0;
@@ -94,6 +95,9 @@ public:
 
 extern "C" 
 {
-	/*! Фабрика классов для объекта OPCServer */
+	/*! Class fabric for OPCServer objects */
 	ExportClass COPCServerObject* WINAPI CreateNewOPCServerObject(void);
+
+	/*! Destroyer for OPCServer objects */
+	ExportClass int WINAPI DestroyOPCServerObject(COPCServerObject* server);
 }

@@ -24,7 +24,7 @@ DL_USE_MODULE_END()
 
 // {4EA2713D-CA07-11d4-BEF5-00002120DB5E}   exe-server by default 
 GUID CLSID_OPCServerEXE = { 0x4ea2713d, 0xca06, 0x11d4, {0xbe, 0xf5, 0x0, 0x0, 0x21, 0x20, 0xdb, 0x5E} };
-CString OPCServerProgID = _T("OPC.DemoServer");
+CString OPCServerProgID = _T("OPCWorkshop.DemoServer");
 
 void DemoDataReceiver::newData(LPCTSTR name, DWORD /*clientId*/, FILETIME &/*time*/, VARIANT &value, WORD Quality )
 {

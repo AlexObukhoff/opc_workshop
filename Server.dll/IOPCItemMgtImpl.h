@@ -137,18 +137,33 @@ public:
 			return E_INVALIDARG;
 	
 		*ppValidationResults = allocate_buffer<OPCITEMRESULT> ( dwCount );
-		*ppErrors = allocate_buffer<HRESULT> ( dwCount );
+		ZeroMemory( *ppValidationResults, sizeof(OPCITEMRESULT)*dwCount );
 
-		/// проверяем на наличие таких параметров 
-		for( i=0;i<dwCount; ++i) {
+		*ppErrors = allocate_buffer<HRESULT> ( dwCount );
+		//  set all errors to S_OK (because S_OK = 0 )
+		ZeroMemory( *ppErrors, sizeof(HRESULT)*dwCount );
+
+		/// check exist of the specified tags
+		for( i=0;i<dwCount; ++i) 
+		{
 			OPCHANDLE hServer = g_NameIndex[ CString(pItemArray[i].szItemID) ];
 			CBrowseItemsList::iterator browseIT = g_BrowseItems.find( hServer );
-			if( browseIT == g_BrowseItems.end() ) {
+			if( browseIT == g_BrowseItems.end() ) 
+			{
 				(*ppErrors)[i] = OPC_E_UNKNOWNITEMID;
 				res = S_FALSE;
 			}
+			//////////////////////////////////////////
+			// the "else" part is Added By Ahmad Mostafavi:
+			else
+			{
+				CItemForBrowse &brI = *browseIT;
+				ppValidationResults[0][i].dwAccessRights = brI.dwAccessRights;
+				ppValidationResults[0][i].hServer = hServer;
+				ppValidationResults[0][i].vtCanonicalDataType = brI.type;
+			}
 		}
-		// TODO проверка типа параметра
+		// TODO - check tag type
 
 		return res; 
 	}

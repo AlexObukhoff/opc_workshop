@@ -36,6 +36,7 @@
 
 DL_USE_MODULE_BEGIN(OpcServer, "Opcserver.dll")
 	DL_DECLARE_FUN(CreateNewOPCServerObject, COPCServerObject*, (void) )
+	DL_DECLARE_FUN(DestroyOPCServerObject, int, (COPCServerObject*) )
 DL_USE_MODULE_END()
 
 using namespace std;
@@ -178,7 +179,7 @@ int _tmain(int /*argc*/, _TCHAR* /*argv[]*/)
 
 	server->StopServer();
 	server->UnregisterServer();
-	delete server;
+	OpcServer::DestroyOPCServerObject(server);
 
 	CoUninitialize();
 	return 0;
