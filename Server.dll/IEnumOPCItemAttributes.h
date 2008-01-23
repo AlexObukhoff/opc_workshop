@@ -1,7 +1,7 @@
 #pragma once
 #include "opcda.h"
 
-class ItemsInGroup;
+class ItemInGroup;
 class CItemForBrowse;
 
 class ATL_NO_VTABLE CIEnumOPCItemAttributes :
@@ -44,7 +44,7 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE Clone( 
 		/* [out] */ IEnumOPCItemAttributes **ppEnumItemAttributes);
 
-	void AddItem( OPCHANDLE first,  ItemsInGroup* i, CItemForBrowse &brI );
+	void AddItem( OPCHANDLE first,  ItemInGroup* i, CItemForBrowse &brI );
 private:
 	OPCITEMATTRIBUTES *Copy( OPCITEMATTRIBUTES *i );
 };

@@ -85,7 +85,8 @@ public:
 				break;
 			case OPC_BROWSE_UP:
 				ATLTRACE(_T("OPC_BROWSE_UP\n"));
-				if( m_BrowsePosition.IsEmpty() ) return E_FAIL;
+				if( m_BrowsePosition.IsEmpty() ) 
+					return E_FAIL;
 				while( m_BrowsePosition.GetLength() ) {
 					if( m_BrowsePosition[m_BrowsePosition.GetLength()-1] == g_BrowseNameDelimeter[0]/*'.'*/) {
 						m_BrowsePosition = m_BrowsePosition.Left( m_BrowsePosition.GetLength()-1 );

@@ -1,14 +1,15 @@
 #pragma once
 
-#include "opcda.h"
+#include "../include/opcda.h"
 #include "ShutdownImpl.h"
 
 #include "OPCDataCallback.h"
-#include "OPCDataReceiver.h"
+#include "../include/OPCDataReceiver.h"
 #include "OpcDaAbstractor.h"
 #include "Browser.h"
 
 #include <AtlSync.h>
+#include <string>
 
 // ‘лаги, определ€ющие поведение клиента. 
 //  OPC_CLIENT_IGNORE_SHUTDOWN	- разрешить подключение к серверу, у которого 
@@ -59,7 +60,7 @@ public:
 public:
 	
 	/// —в-ва клиента дл€ подъсоединени€ к серверу 
-	string m_Host,m_ProgID,m_GroupName;
+	std::string m_Host,m_ProgID,m_GroupName;
 
 	/// период обновлени€ информации по асинхронному интерфейсу
 	DWORD m_UpdateRate;
@@ -106,6 +107,8 @@ public:
 	bool WriteValue( DWORD clientID, FILETIME &time, VARIANT &value, WORD Quality );
 	bool WriteValue( LPCTSTR name, FILETIME &time, VARIANT &value, WORD Quality );
 	
+	bool WriteValues(int nValues, DWORD clientIDs[], VARIANT values[]);
+
 	/// чтение значени€ параметра 
 	bool ReadValue( DWORD clientID, FILETIME &time, VARIANT &value, WORD &Quality );
 
@@ -125,6 +128,11 @@ private:
 	/// записать значение параметра в сервер SYNC 
 	HRESULT PutValueToOPC_Sync( AG_OpcDA::Item * item );
 
+
+	HRESULT OPCClient::PutValuesToOPC_Sync( int nValues, 
+		CString names[], // дл€ диагностики
+		DWORD serverHdls[], 
+		VARIANT values[] );
 /// дл€ OPCMonitor 
 public:
 	IOPCServer *GetServer()  {
@@ -138,6 +146,7 @@ public:
 	/// обновить все параметры 
 	void Refresh();
 
+	const char *GetLastMessage();
 };
 
 // Quality codes

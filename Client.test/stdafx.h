@@ -49,3 +49,7 @@
 #include <string>
 
 #include "Client.h"
+
+
+#define WM_UPDATE_VIEW			(WM_USER + 1)
+#define WM_LOAD_STEP_DONE		(WM_USER + 2)

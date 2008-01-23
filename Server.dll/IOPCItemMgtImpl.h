@@ -72,17 +72,19 @@ public:
 				continue;
 			}
 
-			ItemsInGroup *newItem = NULL;
+			ItemInGroup *newItem = NULL;
 			{
-				CLockWrite locker( pT->m_ItemsAdded );
+				// CLockWrite locker( pT->m_ItemsAdded );
 				// если параметр уже подключен,то мы клиента отшиваем - 
 				// нефига несколько раз подключать параметр
-				if( pT->m_ItemsAdded.find( pItem.hClient ) != pT->m_ItemsAdded.end() ) {
+				ItemsInGroupMap::iterator f = pT->m_ItemsAdded.find( hServer /*, pItem.hClient */);
+				if( f != pT->m_ItemsAdded.end() ) {
 					(*ppErrors)[i] = E_FAIL;
 					continue;
 				}
-				newItem = new ItemsInGroup( pItem.hClient, pItem.bActive );
-				pT->m_ItemsAdded.insert( ItemsInGroupMapPair( hServer, newItem ));
+				newItem = new ItemInGroup( pItem.hClient, pItem.bActive );
+				pT->m_ItemsAdded.insert( hServer, newItem );
+				AtlTrace("Item Inserted. name=%s, hClient=%d\n", pItem.szItemID, pItem.hClient);
 				/// указываем кастомеру на получение данных /*m_DataCustomer.*/
 				pT->AcceptParam( hServer );
 			}
@@ -283,7 +285,7 @@ public:
 		ZeroMemory( *ppErrors, sizeof(HRESULT) * dwCount );
 
 		ItemsInGroupMap::iterator it;
-		CLockWrite locker( pT->m_ItemsAdded );
+//		CLockWrite locker( pT->m_ItemsAdded );
 		for(DWORD i=0;i<dwCount;i++) {
 			it = pT->m_ItemsAdded.find( phServer[i] );
 			if(it == pT->m_ItemsAdded.end())
@@ -311,7 +313,7 @@ public:
 		for( it = pT->m_ItemsAdded.begin(); it != pT->m_ItemsAdded.end(); ++it )
 		{
 			OPCHANDLE h = it->first;
-			ItemsInGroup* i = (*it).second;
+			ItemInGroup* i = (*it).second;
 			CItemForBrowse &brI = *g_BrowseItems.find( h );
 
 			E->AddItem ( h, i, brI );

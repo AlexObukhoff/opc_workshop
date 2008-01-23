@@ -12,17 +12,21 @@ public:
 	treeItem() { 
 		brItems = NULL;
 		index = -1;
+		has_children = false;
 	}
 	const treeItem& operator=(const treeItem& i)
 	{
 		brItems = i.brItems;
 		index = i.index;
+		has_children = i.has_children;
 		return *this;
 	}
 
 	BrowseItems* brItems;
 	int index;
 	string root_name;
+
+	bool has_children;
 };
 
 // CTagBrowserDlg dialog
@@ -55,7 +59,11 @@ public:
 	CTreeCtrl m_TagTree;
 	afx_msg void OnTvnItemexpandingTagTree(NMHDR *pNMHDR, LRESULT *pResult);
 	CString m_TagName;
+
+	vector<CString> m_TagNames;
 	afx_msg void OnTvnSelchangedTagTree(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnEnChangeTagValue();
+
 	CString m_TagValue;
+	afx_msg void OnBnClickedOk();
 };

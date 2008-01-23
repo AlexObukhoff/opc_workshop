@@ -42,7 +42,7 @@ BOOL CClienttestApp::InitInstance()
 {
 	CWinApp::InitInstance();
 
-	CoInitialize(NULL);
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 	// Standard initialization
 	// If you are not using these features and wish to reduce the size

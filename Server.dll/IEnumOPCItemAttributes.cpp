@@ -33,7 +33,7 @@ void CIEnumOPCItemAttributes::FinalRelease()
 	items.erase(items.begin(), items.end() );
 }
 
-void CIEnumOPCItemAttributes::AddItem( OPCHANDLE first,  ItemsInGroup* i, CItemForBrowse &brI )
+void CIEnumOPCItemAttributes::AddItem( OPCHANDLE first,  ItemInGroup* i, CItemForBrowse &brI )
 {
 	OPCITEMATTRIBUTES *oi = (OPCITEMATTRIBUTES *)CoTaskMemAlloc( sizeof(OPCITEMATTRIBUTES) );
 	ZeroMemory( oi, sizeof(OPCITEMATTRIBUTES) );

@@ -123,8 +123,8 @@ STDMETHODIMP COPCDataCallback::OnWriteComplete(
 }
 
 STDMETHODIMP COPCDataCallback::OnCancelComplete( 
-	/* [in] */ DWORD dwTransid,
-	/* [in] */ OPCHANDLE hGroup)
+	/* [in] */ DWORD /*dwTransid*/,
+	/* [in] */ OPCHANDLE /*hGroup*/)
 {
 	ATLTRACE(ATL::atlTraceNotImpl, 0, _T("ATL: %s not implemented.\n"), __FUNCTION__ );
 	return S_OK;

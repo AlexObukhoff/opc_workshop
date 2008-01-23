@@ -56,7 +56,16 @@ DWORD WINAPI WorkerThreadRoutine(void *param)
 
 	assert (thr != NULL);
 
-	return thr->ProcessThread();	
+	try
+	{
+		return thr->ProcessThread();	
+	}
+	catch (opcError &)
+	{
+		// TODO: не обрабатываем потому что здесь не знаем как это делать
+	}
+
+	return 0;
 }
 
 COPCWorkerThread::~COPCWorkerThread()
@@ -116,8 +125,12 @@ bool COPCWorkerThread::StartThread(unsigned timeout)
 				throw opcError( "Error %d creating thread", d);
 			}
 		case WAIT_TIMEOUT:
+			// KDB: Difficult situation: thread was created and not reported that it was started. Kill it
+			//  and report error
+			TerminateThread(thr_hdl, 666);
 			throw opcError( "The time-out interval elapsed for creating thread (%d msec)", timeout);
 		case WAIT_ABANDONED:
+			TerminateThread(thr_hdl, 666);
 			throw opcError( "Wait creating thread abandoned.");
 	}
 	return false;

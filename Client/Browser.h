@@ -1,11 +1,14 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 class OPCClient;
 
 ///  ласс отвечающий за перечисление узлов в дереве 
 class BrowseItems
 {
-	string browsePosition;
+	std::string browsePosition;
 	OPCClient *client;
 	BrowseItems( OPCClient *cl ) : client(cl)
 	{
@@ -16,19 +19,19 @@ class BrowseItems
 public:
 
 	BrowseItems();
-	BrowseItems( OPCClient *cl, string name );
+	BrowseItems( OPCClient *cl, std::string name );
 	BrowseItems( const BrowseItems& b);
 	const BrowseItems& operator =( const BrowseItems& b);
 
 	struct Item
 	{
-		string name;
-		string itemId;
+		std::string name;
+		std::string itemId;
 		unsigned flag;
 	};
 	std::vector<Item> items;
 
-	void Browse( string name );
+	void Browse( std::string name );
 
 	size_t size()
 	{
@@ -36,6 +39,6 @@ public:
 	}
 
 private:
-	static void Browse( BrowseItems &it, IOPCBrowseServerAddressSpace* browse, string name );
-	static void Browse( BrowseItems &it, IOPCBrowse* browse, string name );
+	static void Browse( BrowseItems &it, IOPCBrowseServerAddressSpace* browse, std::string name );
+	static void Browse( BrowseItems &it, IOPCBrowse* browse, std::string name );
 };

@@ -18,6 +18,7 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
 
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_WM_CREATE()
+	ON_MESSAGE(WM_LOAD_STEP_DONE, OnWmLoadStepDone)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -105,4 +106,16 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 
 
 	return TRUE;
+}
+
+LRESULT CMainFrame::OnWmLoadStepDone(WPARAM wParam, LPARAM /*lParam*/)
+{
+	load_test_step_info *info = (load_test_step_info *)wParam;
+
+	CString text; text.Format("Load test. Step: %d, tags: %d, time: %d msec", 
+		info->step_no, info->tags_processed, info->msec);
+
+	m_wndStatusBar.SetPaneText(0, text);	
+	delete info;
+	return 0;
 }

@@ -39,7 +39,8 @@ public:
 						/*[out]*/ OPCHANDLE * phServerGroup ) 
 	{ 
 		T* pT = static_cast<T*>(this);
-		if(pT->m_Deleted) return E_FAIL;
+		if(pT->m_Deleted) 
+			return E_FAIL;
 
 		if(pUpdateRate) *pUpdateRate = pT->m_UpdateRate;
 		if(pActive) *pActive = pT->m_Timer.IsRunning();
@@ -67,7 +68,8 @@ public:
 					/*[unique, in]*/ OPCHANDLE *phClientGroup ) 
 	{ 
 		T* pT = static_cast<T*>(this);
-		if(pT->m_Deleted) return E_FAIL;
+		if(pT->m_Deleted) 
+			return E_FAIL;
 
 		bool rate_changed = false;
 		DWORD new_rate = * pRequestedUpdateRate;
@@ -109,7 +111,8 @@ public:
 	STDMETHOD (SetName)( /*[in, string]*/ LPCWSTR szName ) 
 	{ 
 		T* pT = static_cast<T*>(this);
-		if(pT->m_Deleted) return E_FAIL;
+		if(pT->m_Deleted) 
+			return E_FAIL;
 
 		// Посылка сообщения серверу об изменении имени группы 
 		//pT->Fire_Event( 1, &CComVariant( CComBSTR(pT->m_GroupName)),
@@ -127,7 +130,8 @@ public:
 					/*[out, iid_is(riid)]*/ LPUNKNOWN * ppUnk ) 
 	{ 
 		T* pT = static_cast<T*>(this);
-		if(pT->m_Deleted) return E_FAIL;
+		if(pT->m_Deleted) 
+			return E_FAIL;
 		return E_NOTIMPL; 
 	}
 };

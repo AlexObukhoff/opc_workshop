@@ -17,13 +17,22 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+
+/*
+	Modification history:
+	oct-2006 - Denis Kovalev - compilation issues
+*/
+
 #pragma once
+
+#include <time.h>
+#include <string>
 
 class opcError
 {
 public:
 	time_t	stamp;
-	string message;
+	std::string message;
 
 	opcError() 
 	{
@@ -31,7 +40,7 @@ public:
 		message = "Unknown error";
 	}
 
-	opcError(string msg) 
+	opcError(std::string msg) 
 	{
 		message = msg;
 		time(&stamp);

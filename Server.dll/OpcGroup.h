@@ -32,7 +32,7 @@
 //#include "_IGF_Events_CP.H"
 
 /// Описывает параметр находящийся в группе OPC сервера 
-class ItemsInGroup
+class ItemInGroup
 {
 public:
 	OPCHANDLE hClient;
@@ -40,7 +40,7 @@ public:
 //	volatile LONG modified;
 	BOOL bActive;
 
-	ItemsInGroup(OPCHANDLE h = 0,BOOL act = FALSE) : 
+	ItemInGroup(OPCHANDLE h = 0,BOOL act = FALSE) : 
 		  hClient(h), 
 //		  modified(FALSE), 
 		  bActive(act), 
@@ -48,11 +48,35 @@ public:
 	{ 
 	}
 };
-class ItemsInGroupMap : 
-	public std::map<OPCHANDLE,ItemsInGroup*>,
-	public CRWMonitor
-{ };
-typedef std::pair<OPCHANDLE,ItemsInGroup*> ItemsInGroupMapPair;
+
+class ItemsInGroupMap : public CRWMonitor
+{ 
+protected:
+	std::map<OPCHANDLE,ItemInGroup*> m_items_map;
+//	CRWMonitor locker;
+public:
+
+	typedef std::map<OPCHANDLE,ItemInGroup*>::iterator iterator;
+
+	iterator find (OPCHANDLE h) {
+		return m_items_map.find(h);
+	}
+
+	iterator begin() {
+		return m_items_map.begin();
+	}
+	iterator end() {
+		return m_items_map.end();
+	}
+
+	void insert(OPCHANDLE hdl, ItemInGroup *item) {
+		m_items_map.insert(make_pair(hdl, item));
+	}
+
+	void erase(iterator where) {
+		m_items_map.erase(where);
+	}
+};
 
 //#include "NameIndex.H"
 #include "BrowseItem.H"

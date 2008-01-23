@@ -25,6 +25,7 @@
 #define ID_Menu                         32771
 #define ID_BUTTON32772                  32772
 #define ID_REFRESH                      32773
+#define ID_LOAD_TEST                    32774
 #define ID_ADD_TAG_LIST                 32775
 
 // Next default values for new objects

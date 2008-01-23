@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <string>
+#include <atlcomcli.h>
 
 #define START_THREAD_TIMEOUT	1500
 
@@ -63,7 +64,6 @@ public:
 };
 
 // Описатель события, возникшего по приходу данных от OPC-сервера
-// 
 class COPCDataImportEvent
 {
 public:

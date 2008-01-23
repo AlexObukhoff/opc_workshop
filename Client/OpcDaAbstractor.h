@@ -1,6 +1,8 @@
 #pragma once 
 
 #include "task.h"
+#include <atlstr.h>
+#include <map>
 
 namespace AG_OpcDA 
 {

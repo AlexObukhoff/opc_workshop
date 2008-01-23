@@ -101,6 +101,8 @@ BEGIN
     SEPARATOR
     BUTTON      ID_WRITE_VALUE
     BUTTON      ID_REFRESH
+    BUTTON 	ID_LOAD_TEST
+
     SEPARATOR
     BUTTON      ID_APP_ABOUT
 END
@@ -150,12 +152,12 @@ CAPTION "About Client.test"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,17,21,20
-    LTEXT           "OPC Workshop test client. Version 0.1",IDC_STATIC,40,10,
+    LTEXT           "OPC Workshop test client. Version 0.2",IDC_STATIC,40,10,
                     140,8,SS_NOPREFIX
     LTEXT           "This program is designed for testing of basic functionality of OPCWorkshop client library.",
                     IDC_STATIC,40,24,143,20
     DEFPUSHBUTTON   "OK",IDOK,201,7,50,16,WS_GROUP
-    LTEXT           "Copyright (C) Denis Kovalev 2006 ( KovalevDenis@gmail.com )",
+    LTEXT           "Copyright (C) Denis Kovalev 2006,2007 ( KovalevDenis@gmail.com )",
                     IDC_STATIC,18,52,226,8
 END
 

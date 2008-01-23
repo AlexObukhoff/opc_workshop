@@ -33,6 +33,8 @@ void CTagBrowserDlg::DoDataExchange(CDataExchange* pDX)
 
 void CTagBrowserDlg::fillTree(HTREEITEM root, string name)
 {
+	try
+	{
 	BrowseItems *br = new BrowseItems( &m_opc_client, name );
 
 	for( size_t i=0; i < br->items.size(); ++i ) {
@@ -60,29 +62,39 @@ void CTagBrowserDlg::fillTree(HTREEITEM root, string name)
 
 		pItem = m_TagTree.InsertItem( it.name.c_str(), IconId, IconId, root);
 
+		treeItem *item = new treeItem();
 		if( it.flag == OPC_BROWSE_HASCHILDREN ) {
 			m_TagTree.SetItemImage( pItem, 1, 1 );
 			m_TagTree.InsertItem("TEMP", pItem);
+			item->has_children = true;
 		}
 
 		m_TagTree.SetItemText( pItem, it.itemId.c_str() );
 
-		treeItem *item = new treeItem();
 		item->brItems = br;
 		item->index = i;
 		item->root_name = name;
+
 
 		m_TagTree.SetItemData( pItem, (DWORD)item );
 		treeItems.insert( item );
 	}
 
 	brItems.insert( br );
+
+	}
+	catch (opcError &oe)
+	{
+		AfxMessageBox(oe.GetMessage(), MB_ICONSTOP | MB_OK);
+	}
+
 }
 
 
 BEGIN_MESSAGE_MAP(CTagBrowserDlg, CDialog)
 	ON_NOTIFY(TVN_ITEMEXPANDING, IDC_TAG_TREE, OnTvnItemexpandingTagTree)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TAG_TREE, OnTvnSelchangedTagTree)
+	ON_BN_CLICKED(IDOK, OnBnClickedOk)
 END_MESSAGE_MAP()
 
 
@@ -116,6 +128,7 @@ void CTagBrowserDlg::OnTvnItemexpandingTagTree(NMHDR *pNMHDR, LRESULT *pResult)
 		return;
 	}
 
+
 	int FolderIconId = 2;
 	if (pNMTreeView->action == TVE_EXPAND )  {
 		FolderIconId = 2;
@@ -123,16 +136,23 @@ void CTagBrowserDlg::OnTvnItemexpandingTagTree(NMHDR *pNMHDR, LRESULT *pResult)
 		FolderIconId = 1;
 	}
 
-	if (child_name == "TEMP") {
-		m_TagTree.DeleteItem(child);
+	try
+	{
+		if (child_name == "TEMP") {
+			m_TagTree.DeleteItem(child);
 
-		treeItem *titem = (treeItem *)m_TagTree.GetItemData(item);
+			treeItem *titem = (treeItem *)m_TagTree.GetItemData(item);
 
-		BrowseItems::Item &it = titem->brItems->items[ titem->index ];
-		if( it.flag == OPC_BROWSE_HASCHILDREN ) {
-			fillTree( item, it.itemId );
+			BrowseItems::Item &it = titem->brItems->items[ titem->index ];
+			if( it.flag == OPC_BROWSE_HASCHILDREN ) {
+				fillTree( item, it.itemId );
+			}
+
 		}
-
+	}
+	catch (opcError &oe)
+	{
+		AfxMessageBox(oe.GetMessage(), MB_OK | MB_ICONSTOP);
 	}
 
 	m_TagTree.SetItemImage(item, FolderIconId, FolderIconId);
@@ -153,24 +173,56 @@ void CTagBrowserDlg::OnTvnSelchangedTagTree(NMHDR *pNMHDR, LRESULT *pResult)
 	// Read tag value, to do it add item to client object at first
 	static OPCHANDLE client_hdl = 2000;
 
-	OPCHANDLE client_id = m_opc_client.AddTag(client_hdl, m_TagName, VT_UNKNOWN);
+	try
+	{
+		OPCHANDLE client_id = m_opc_client.AddTag(client_hdl, m_TagName, VT_UNKNOWN);
 
-	FILETIME time;
-	VARIANT value; VariantInit(&value);
-	WORD	quality;
+		FILETIME time;
+		VARIANT value; VariantInit(&value);
+		WORD	quality;
 
-	if (!m_opc_client.ReadValue(client_id, time, value, quality)) {
-		AfxTrace("Can't read tag value for %s\n", it.itemId.c_str());
-		m_TagValue = "-------";
-	} else {
-		m_TagValue = FormatValue(value, quality).c_str();
+		if (!m_opc_client.ReadValue(client_id, time, value, quality)) {
+			AfxTrace("Can't read tag value for %s\n", it.itemId.c_str());
+			m_TagValue = "-------";
+		} else {
+			m_TagValue = FormatValue(value, quality).c_str();
+		}
+
+		m_opc_client.RemoveTag(client_id);
+
+		client_hdl++;
 	}
-
-	m_opc_client.RemoveTag(client_id);
-
-	client_hdl++;
+	catch (opcError &oe)
+	{
+		AfxMessageBox(oe.GetMessage(), MB_ICONSTOP | MB_OK);
+	}
 
 	UpdateData(FALSE);
 
 	*pResult = 0;
+}
+
+void CTagBrowserDlg::OnBnClickedOk()
+{
+	// Get selected item
+
+	HTREEITEM selected = m_TagTree.GetSelectedItem();
+
+	treeItem *item = (treeItem *)m_TagTree.GetItemData(selected);
+
+	if (item != NULL && item->has_children) {
+		// Много итемов
+
+		BrowseItems *br = new BrowseItems( &m_opc_client, (LPCSTR)m_TagName );
+
+		for( size_t i=0; i < br->items.size(); ++i ) {
+			BrowseItems::Item &it = br->items[i];
+			m_TagNames.push_back(it.itemId.c_str());
+		}
+	} else {
+		m_TagNames.push_back(m_TagName);
+	}
+
+	// TODO: Add your control notification handler code here
+	OnOK();
 }

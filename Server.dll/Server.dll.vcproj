@@ -34,7 +34,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/fixed:no"
-				OutputFile="$(OutDir)/OPCServer.dll"
+				OutputFile="../../bin/$(OutDir)/OPCServer.dll"
 				LinkIncremental="1"
 				ModuleDefinitionFile="OPCServer.def"
 				GenerateDebugInformation="TRUE"
@@ -44,10 +44,7 @@
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="copy $(TargetPath) ..\..\Cassandra\$(OutDir)\
-time /T
-"/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="time /T"/>
@@ -84,7 +81,7 @@ time /T
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/OPCServer.dll"
+				OutputFile="../../bin/$(OutDir)/OPCServer.dll"
 				LinkIncremental="1"
 				ModuleDefinitionFile="OPCServer.def"
 				GenerateDebugInformation="TRUE"
@@ -96,8 +93,7 @@ time /T
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="copy $(TargetPath) ..\..\Cassandra\"/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool

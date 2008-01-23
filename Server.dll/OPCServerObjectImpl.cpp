@@ -206,6 +206,9 @@ bool COPCServerObjectImpl::WriteValue( LPCTSTR name, FILETIME ft, WORD quality, 
 /// передать значение параметра
 bool COPCServerObjectImpl::WriteValue( int hdl, FILETIME ft, WORD quality, const VARIANT &value )
 {
+	if (g_Server == NULL)
+		return false;
+
 	CAG_Value adapt;
 	adapt.m_Name = g_NameIndex[ hdl ];
 	adapt.m_NameId = hdl;

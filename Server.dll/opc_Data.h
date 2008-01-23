@@ -181,6 +181,7 @@ public:
 
 	/// получить для определенного параметра его последнее значение 
 	bool getLastValue( OPCHANDLE h, CAG_Value& value );
+
 protected:
 	/// фильтрует пераметры из входной очереди, и перекладывает их во внутренний буффер.
 	virtual void step();

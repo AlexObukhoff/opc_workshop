@@ -27,6 +27,8 @@
 #include "opc_Data.h"
 #include "opc_impl.h"
 
+#include <fstream>
+using namespace std;
 
 /*
   TODO
@@ -151,28 +153,34 @@ CAG_Value COPCDataManager::getLastValue( DWORD nameID )
 /// процедура распихивающия данные по подписчикам.
 void COPCDataManager::step()
 {
-CAG_ValueVector *vect = NULL;
-COPCDataCustomerList::iterator it;
+	CAG_ValueVector *vect = NULL;
+	COPCDataCustomerList::iterator it;
 
 	while((vect = m_Queue.pop()) != NULL) {
 		CAG_ValueVector &V = *vect;
 		thread::CCritSectLocker locker(&m_CustomerSect);
 
-		for( it = m_CustomerList.begin(); it != m_CustomerList.end(); ++it)  {
-			try {
-				for(size_t i=0;i<V.size();++i)  {
-					CAG_Value &val = V[i];
-					(*it)->pushData( &val );
-					
+
+		try {
+			for(size_t i=0;i<V.size();++i)  {
+				CAG_Value &val = V[i];
+
+				{
 					CLockWrite locker(m_LastValue);
 					m_LastValue[ val.m_NameId ] = val;
 				}
-			} catch(...) {
-				ATLTRACE("Exception: COPCDataManager::step()\n");
+
+				for( it = m_CustomerList.begin(); it != m_CustomerList.end(); ++it)  
+				{
+					(*it)->pushData( &val );
+				}
 			}
+		} catch(...) {
+			ATLTRACE("Exception: COPCDataManager::step()\n");
 		}
 		delete vect;
 	}
+
 }
 
 

@@ -92,7 +92,7 @@ public:
 		CLockRead locker( pT->m_ItemsAdded );
 		
 		for( it = pT->m_ItemsAdded.begin(); it != pT->m_ItemsAdded.end(); ++it ) {
-			ItemsInGroup* item = (*it).second;
+			ItemInGroup* item = (*it).second;
 			if( item->bActive ) {
 				thread::CCritSectLocker locker( pT->m_AsyncReadSect );
 				pT->m_AsyncRead.insert( (*it).first );

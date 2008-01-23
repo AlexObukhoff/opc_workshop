@@ -1,7 +1,8 @@
 #pragma once
 
-#include "opcDataReceiver.h"
-#include "opccomn.h"
+#include "../include/opcDataReceiver.h"
+#include "../include/opccomn.h"
+#include <string>
 /*
 *     Реализация интерфейса событий IOPCShutdown для OPC клиента 
 *
@@ -15,7 +16,7 @@ class COPCShutdownImpl :
 
 public:
 	DWORD m_Cookie;
-	string m_Reason;
+	std::string m_Reason;
 
 	COPCShutdownImpl ( COPCReceiveData **res ) :
 	  m_res( res )
@@ -54,7 +55,7 @@ public:
 
 	virtual HRESULT STDMETHODCALLTYPE ShutdownRequest ( /*[in]*/ LPCWSTR szReason )
 	{
-		string msg = CW2A(szReason);
+		std::string msg = CW2A(szReason);
 		if( *m_res != NULL ) {
 			(*m_res)->StatusChanged( -1, msg.c_str() );
 		}

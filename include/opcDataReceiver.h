@@ -46,7 +46,8 @@ public:
 		@param value - param value 
 		@param Quality - OPC quality flag 
 	*/
-	virtual void newData(LPCTSTR name, DWORD clientID, FILETIME &time, VARIANT &value, WORD Quality) = 0;
+	virtual void newData(LPCTSTR name, DWORD clientID, FILETIME &time, 
+		VARIANT &value, WORD Quality) = 0;
 	
 	/// after calls newData, called newItemIsReceived
 	virtual void newItemIsReceived( DWORD count ) { count; };

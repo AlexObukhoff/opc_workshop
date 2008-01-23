@@ -10,6 +10,11 @@
 
 #include "OPCClient.h"
 
+#include <assert.h>
+#include <vector>
+#include <map>
+#include <string>
+
 class CDataMeanChannel;
 
 class OPCMonitor;
@@ -116,9 +121,9 @@ private:
 
 	void DeleteParameter(LONG ParamId);
 	void InsertParameter(LONG ParamId, const char *ParamName, bool UseOpcTag, const char *OpcTagId);
-	void AddOpcParameter(vector<OPCParameterDesc*> &pdesc_vector);	
+	void AddOpcParameter(std::vector<OPCParameterDesc*> &pdesc_vector);	
 
-	map <int, OPCParameterDesc> in_params;
+	std::map <int, OPCParameterDesc> in_params;
 
 protected:
 	mutex_t opc_mon_mtx;
@@ -133,7 +138,7 @@ public:
 		VARTYPE vt, 
 		int index/*, CDataMeanChannel *ch*/);
 
-	string GetParameterName(int index);
+	std::string GetParameterName(int index);
 //	int LoadParameters(void);
 
 	bool IsExist(int itemid);
@@ -165,7 +170,7 @@ public:
 		return m_Client.GetOpcGroup();
 	}
 
-	virtual string DumpStatus();
+	virtual std::string DumpStatus();
 
 	/*!
 	   Заносит значение параметра в очередь данных, для записи в ОРС сервер
@@ -190,7 +195,7 @@ public:
 	BOOL m_UseSync;  // вместо ARMImportConfig::instance.SyncMode()
 
 private:
-	vector<OPCEventConsumer*> consumers;
+	std::vector<OPCEventConsumer*> consumers;
 	void FireOPCEvent( COPCDataImportEvent &ev );
 	friend class COPCDataCallbackImpl;
 public:
@@ -203,5 +208,5 @@ public:
 	const OPCMonitor& operator=(const OPCMonitor&) {  throw ("operator= NOT USING FOR OPCMonitor"); }
 };
 
-string GetComErrorMessage( _com_error &e );
-string GetComErrorMessage( HRESULT hr );
+std::string GetComErrorMessage( _com_error &e );
+std::string GetComErrorMessage( HRESULT hr );

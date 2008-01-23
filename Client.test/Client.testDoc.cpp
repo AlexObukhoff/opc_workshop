@@ -16,6 +16,134 @@
 
 #define OPCCLIENT_FILE "OPCClient.sav"
 
+mutex_t mtx;
+OPCClient m_OPCClient;
+
+DWORD WINAPI LoadTestFn(void *arg)
+{
+	CoInitializeEx(NULL, COINIT_MULTITHREADED );
+
+	CClienttestDoc *pDoc = (CClienttestDoc *)arg;
+	pDoc->DoLoadTest();
+
+	return 1;
+}
+
+void WriteThread(void *arg)
+{
+//	CoInitializeEx(NULL, COINIT_MULTITHREADED );
+
+	vector<tagDsc> *m_TagList = (vector<tagDsc> *)arg;
+
+	vector<tagDsc>::iterator it; 
+
+	for (it = m_TagList->begin(); it != m_TagList->end(); ++it) {
+		it->active = true;
+	}
+
+	for(;;) {
+		{
+			// 1 step - compose array(s) 
+
+			critical_section cs(mtx);
+			for (it = m_TagList->begin(); it != m_TagList->end(); ++it)
+			{
+				tagDsc &tag = *it;
+
+				if (! tag.active) {
+					continue;
+				}
+
+				FILETIME now_time;
+				CoFileTimeNow(&now_time);
+
+				CComVariant ret; ret.Clear();
+				ret.vt = tag.type;
+
+				switch(ret.vt) {
+		case VT_I1:  
+			ret.bVal = (BYTE)(tag.counter %2);	
+			break;
+		case VT_I2:  
+			ret.iVal = (short)(tag.counter %2);	
+			break;
+		case VT_I4:  
+			ret.lVal = (long)(tag.counter %2);	
+			break;
+		case VT_I8:  
+			ret.llVal = (LONGLONG)(tag.counter %2);	
+			break;
+		case VT_R4:  
+			ret.fltVal = (float)((tag.counter %16) + 4);	
+			break;
+		case VT_R8:  
+			ret.dblVal = (double)((tag.counter %16) + 4);	
+			break;
+		case VT_UI1: 
+			ret.bVal = (BYTE)(tag.counter %2);	
+			break;
+		case VT_UI2: 
+			ret.uiVal = (USHORT)(tag.counter %2);	
+			break;
+		case VT_UI4: 
+			ret.ulVal = (tag.counter %2);	
+			break;
+		case VT_UI8: 
+			ret.ullVal = (tag.counter %2);	
+			break;
+		default:
+			ret.vt = VT_EMPTY;
+				}
+				if (! m_OPCClient.WriteValue(tag.client_handle, now_time, ret, QUAL_GOOD)) {
+					AfxMessageBox("Coudn't write value to server");
+					return;
+				}
+				tag.counter++;
+
+				FILETIME ret_time;
+				CComVariant ret_value; ret_value.Clear();
+				WORD ret_quality;
+
+				if (! m_OPCClient.ReadValue(tag.client_handle, ret_time, ret_value, ret_quality)) {
+					// Прочиталось оно с ошибкой
+
+					AfxMessageBox("Coudn't read value from server", MB_OK | MB_ICONSTOP);
+					return;
+				}
+
+				// А сравним-ка мы его
+				HRESULT hcmp = VarCmp(&ret, &ret_value, 0);
+				if (hcmp != VARCMP_EQ) {
+					CString msg; msg.Format("Tag %s Values are not equal !!! continue ?",
+						(LPCSTR)it->tagName);
+
+					int res = AfxMessageBox(msg, 
+						MB_YESNO | MB_ICONSTOP);
+
+					if (res == IDYES) {
+						// Удалим тэг из списка и продолжим
+
+						it->active = false;
+					} else {
+						return;
+					}
+				}
+
+			}
+		}
+		Sleep(500);
+	}
+}
+
+// IMPLEMENT_SERIAL(CLoad_test_config, CObject, 1)
+
+CLoad_test_config::CLoad_test_config()
+{
+	use_read_op = true;
+	use_write_op = true;
+	timeout = 500;
+}
+
 // CClienttestDoc
 
 IMPLEMENT_DYNCREATE(CClienttestDoc, CDocument)
@@ -31,8 +159,9 @@ BEGIN_MESSAGE_MAP(CClienttestDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_WRITE_VALUE, OnUpdateWriteValue)
 	ON_COMMAND(ID_REFRESH, OnRefreshValue)
 	ON_UPDATE_COMMAND_UI(ID_REFRESH, OnUpdateWriteValue)
-
 	ON_COMMAND(ID_ADD_TAG_LIST, OnAddTagList)
+	ON_UPDATE_COMMAND_UI(ID_LOAD_TEST, OnUpdateLoadTest)
+	ON_COMMAND(ID_LOAD_TEST, OnLoadTest)
 END_MESSAGE_MAP()
 
 
@@ -41,6 +170,10 @@ END_MESSAGE_MAP()
 CClienttestDoc::CClienttestDoc()
 {
 	selection = NULL;
+	m_LoadTestRunning = FALSE;
+
+	hStopThread = CreateEvent(NULL, FALSE, FALSE, NULL);
+	hThreadStarted  = CreateEvent(NULL, FALSE, FALSE, NULL);
 }
 
 CClienttestDoc::~CClienttestDoc()
@@ -80,12 +213,14 @@ void CClienttestDoc::Serialize(CArchive& ar)
 		ar << CString(m_OPCClient.m_GroupName.c_str());
 
 		// Save tag list
-
 		ar << m_TagList.size();
 		vector <tagDsc>::iterator it;
 		for (it = m_TagList.begin(); it != m_TagList.end(); ++it) {
 			ar << it->tagName;
 		}
+
+		// Save load test config
+//		ar << &m_LoadTestConfig;
 	}
 	else
 	{
@@ -106,6 +241,9 @@ void CClienttestDoc::Serialize(CArchive& ar)
 			AddTag(tagName);
 		}
 		m_OPCClient.Refresh();
+
+		// Load load test config
+//		ar >> &m_LoadTestConfig;
 	}
 }
 
@@ -162,7 +300,12 @@ void CClienttestDoc::OnAddTag()
 
 	if (IDOK == dlg.DoModal()) {
 
-		AddTag(dlg.m_TagName);
+		vector<CString> ::iterator it;
+
+		for (it = dlg.m_TagNames.begin(); it != dlg.m_TagNames.end(); ++it)
+		{
+			AddTag(*it);
+		}
 	}
 }
 
@@ -178,8 +321,21 @@ void CClienttestDoc::OnRefreshValue()
 
 void CClienttestDoc::OnWriteValue()
 {
-	// Get selected item and it's properties
+#if 0
+	// KDB: начинаем массированную запись по всем тэгам, чтобы проверить надежность
 
+	try
+	{
+		WriteThread((void *) &m_TagList);
+	}
+	catch (opcError &ee)
+	{
+		AfxMessageBox(ee.GetMessage(), MB_OK | MB_ICONSTOP);
+	}
+#endif
+//	_beginthread(WriteThread, 0, );
+
+	// Get selected item and it's properties
 	if (selection == NULL) {
 		AfxMessageBox("Не выбран тэг для записи значения");
 		return;
@@ -198,6 +354,214 @@ void CClienttestDoc::OnWriteValue()
 void CClienttestDoc::OnUpdateWriteValue(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable( m_OPCClient.isConnected()); // - Thomas Haase 
+}
+
+void CClienttestDoc::OnLoadTest()
+{
+	if (m_LoadTestRunning) {
+		// stop load test - set event and wait for the thread finished
+		SetEvent(hStopThread);
+
+		DWORD res = WaitForSingleObject(hThread, 1000);
+		switch(res)
+		{
+		case WAIT_OBJECT_0:
+			// ok
+			m_LoadTestRunning = false;
+			break;
+		case WAIT_TIMEOUT:
+			TerminateThread(hThread, 666);
+			AfxMessageBox("Load testing thread was terminated");
+			m_LoadTestRunning = false;
+		    break;
+		default:
+		    break;
+		}
+	} else {
+		// start load test - start the thread and wait for event it was started
+
+		DWORD threadid;
+		hThread = CreateThread(NULL, 0, LoadTestFn, this, 0, &threadid);
+	//		(HANDLE) _beginthread(LoadTestFn, 0, this);
+
+		DWORD res = WaitForSingleObject(hThreadStarted, 1000);
+
+		switch(res)
+		{
+		case WAIT_OBJECT_0:
+			// Ok
+			m_LoadTestRunning = true;
+			break;
+		case WAIT_TIMEOUT:
+			AfxMessageBox("Can't start load test - thread timeout");
+		    break;
+		default:
+			AfxMessageBox("Can't start load test - unknown error");
+		    break;
+		}
+	}
+}
+
+void CClienttestDoc::OnUpdateLoadTest(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetRadio(m_LoadTestRunning);
+}
+
+void CClienttestDoc::DoLoadTest()
+{
+	vector<tagDsc>::iterator it; 
+
+	for (it = m_TagList.begin(); it != m_TagList.end(); ++it) {
+		it->active = true;
+	}
+
+	int step_no = 0;
+	POSITION pos = GetFirstViewPosition();
+	CView* pView = GetNextView(pos);
+
+	SetEvent(hThreadStarted);
+
+
+	DWORD res = 0;
+	bool bExit = false;
+	for (;!bExit;)
+	{
+		int tag_count = 0;
+		DWORD start_ticks = GetTickCount();
+		{
+
+			std::vector<OPCHANDLE> client_handles;
+			std::vector<VARIANT>   values;
+
+			critical_section cs(mtx);
+			// Body
+			for (it = m_TagList.begin(); it != m_TagList.end(); ++it)
+			{
+				tagDsc &tag = *it;
+
+				if (! tag.active) {
+					continue;
+				}
+
+				FILETIME now_time;
+				CoFileTimeNow(&now_time);
+
+				CComVariant ret; ret.Clear();
+				ret.vt = tag.type;
+
+				switch(ret.vt) {
+		case VT_I1:  
+			ret.bVal = (BYTE)(tag.counter %2);	
+			break;
+		case VT_I2:  
+			ret.iVal = (short)(tag.counter %2);	
+			break;
+		case VT_I4:  
+			ret.lVal = (long)(tag.counter %2);	
+			break;
+		case VT_I8:  
+			ret.llVal = (LONGLONG)(tag.counter %2);	
+			break;
+		case VT_R4:  
+			ret.fltVal = (float)((tag.counter %16) + 4);	
+			break;
+		case VT_R8:  
+			ret.dblVal = (double)((tag.counter %16) + 4);	
+			break;
+		case VT_UI1: 
+			ret.bVal = (BYTE)(tag.counter %2);	
+			break;
+		case VT_UI2: 
+			ret.uiVal = (USHORT)(tag.counter %2);	
+			break;
+		case VT_UI4: 
+			ret.ulVal = (tag.counter %2);	
+			break;
+		case VT_UI8: 
+			ret.ullVal = (tag.counter %2);	
+			break;
+		default:
+			ret.vt = VT_EMPTY;
+				}
+				client_handles.push_back(tag.client_handle);
+				values.push_back(ret);
+
+				//if (! m_OPCClient.WriteValue(tag.client_handle, now_time, ret, QUAL_GOOD)) {
+				//	AfxMessageBox("Coudn't write value to server");
+				//	return;
+				//}
+				tag.counter++;
+#if 0
+				FILETIME ret_time;
+				CComVariant ret_value; ret_value.Clear();
+				WORD ret_quality;
+
+				if (! m_OPCClient.ReadValue(tag.client_handle, ret_time, ret_value, ret_quality)) {
+					// Прочиталось оно с ошибкой
+
+					AfxMessageBox("Coudn't read value from server", MB_OK | MB_ICONSTOP);
+					return;
+				}
+
+				// А сравним-ка мы его
+				HRESULT hcmp = VarCmp(&ret, &ret_value, 0);
+				if (hcmp != VARCMP_EQ) {
+					CString msg; msg.Format("Tag %s Values are not equal !!! continue ?",
+						(LPCSTR)it->tagName);
+
+					int res = AfxMessageBox(msg, 
+						MB_YESNO | MB_ICONSTOP);
+
+					if (res == IDYES) {
+						// Удалим тэг из списка и продолжим
+
+						it->active = false;
+					} else {
+						return;
+					}
+				}
+#endif
+
+				tag_count ++;
+			}
+			if (! m_OPCClient.WriteValues(client_handles.size(), &client_handles[0], &values[0])) {
+				AfxMessageBox("Coudn't write value to server");
+				return;
+			}
+
+		}
+
+
+		DWORD finish_ticks = GetTickCount();
+
+
+
+		struct load_test_step_info *step_info = new load_test_step_info;
+		step_info->step_no = ++step_no;
+		step_info->tags_processed = tag_count;
+		step_info->msec = finish_ticks - start_ticks;
+		int timeout = m_LoadTestConfig.timeout - step_info->msec;
+		if (timeout < 0)
+			timeout = 0;
+
+		theApp.m_pMainWnd->PostMessage(WM_LOAD_STEP_DONE, (WPARAM)step_info, 0);
+
+		DWORD res = WaitForSingleObject(hStopThread, timeout);
+
+		switch(res)
+		{
+		case WAIT_OBJECT_0:
+			bExit = true;
+			break;
+		case WAIT_TIMEOUT:
+			// Ok
+		    break;
+		default:
+			// Error - TODO: report it
+			AfxTrace("Thread error");
+		    break;
+		}
+	} 
 }
 
 void CClienttestDoc::log_message( LogLevel llevel, const char* fmt, ... )
@@ -246,11 +610,18 @@ void CClienttestDoc::newData(LPCTSTR name, DWORD clientID, FILETIME &time, VARIA
 	tag_descriptor.last_quality = Quality;
 	tag_descriptor.last_time = time;
 	tag_descriptor.last_value = value;
+	tag_descriptor.type = value.vt;
 
 	TRACE("new param: %s [%d]\n", name, clientID );
 
 	try {
-		UpdateAllViews(NULL, f->second);
+		// Send a message to our window
+
+		POSITION pos = GetFirstViewPosition();
+		CView* pFirstView = GetNextView( pos );
+		
+		pFirstView->SendMessage(WM_UPDATE_VIEW, f->second, NULL);
+//		UpdateAllViews(NULL, f->second);
 	} catch(...) {
 		// may be exception if view not full construct 
 //		OutputDebugString("UpdateAllViews() Exception!\n");
@@ -277,6 +648,8 @@ int CClienttestDoc::AddTag(CString & tagName)
 	tag_list_items[client_id] = itemno;
 	tag_descriptor.client_handle = client_id;
 
+	tag_descriptor.type = VT_UNKNOWN;
+
 	m_TagList.push_back(tag_descriptor);
 
 	// Читаем начальное значение
@@ -285,9 +658,12 @@ int CClienttestDoc::AddTag(CString & tagName)
 	WORD	quality;
 	if (!m_OPCClient.ReadValue(client_id, time, value, quality)) {
 		AfxTrace("Can't read tag value for %s\n", (LPCSTR)tagName);
+
 	} else {
 		newData(NULL, client_id, time, value, quality);
+		tag_descriptor.type = value.vt;
 	}
+
 
 	UpdateAllViews(NULL, itemno);
 	return 0;
@@ -354,7 +730,6 @@ void CClienttestDoc::SaveFile(const char *fname)
 {
 	OnSaveDocument(fname);
 }
-
 
 void CClienttestDoc::OnAddTagList()
 {

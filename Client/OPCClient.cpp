@@ -10,6 +10,7 @@
 #include <sstream>
 #include "ag_Clocker.h"
 
+
 //**************************************************************************
 std::string FormatQuality(WORD quality)
 {
@@ -218,6 +219,11 @@ OPCClient::~OPCClient(void)
 	CleanDaAbstractor();
 }
 
+const char *OPCClient::GetLastMessage()
+{
+	return m_DataReceiver->GetLogMessage();
+}
+
 void OPCClient::setDataReceiver( COPCReceiveData * rec )
 {
 	m_DataReceiver = rec;
@@ -383,22 +389,22 @@ createGroup:
 				return E_FAIL; 
 			}
 
-			if( m_OPCDataCallback == NULL ) {
-				m_OPCDataCallback = new COPCDataCallback;
-				m_OPCDataCallback->AddRef();
-				m_OPCDataCallback->receiver = m_DataReceiver;
-			}
+			//if( m_OPCDataCallback == NULL ) {
+			//	m_OPCDataCallback = new COPCDataCallback;
+			//	m_OPCDataCallback->AddRef();
+			//	m_OPCDataCallback->receiver = m_DataReceiver;
+			//}
 
-			hr = m_ConnectionPoint->Advise(m_OPCDataCallback, &m_Cookie);
-			if( FAILED(hr) ) 
-			{ 
-				delete m_OPCDataCallback;
-				m_OPCDataCallback = NULL;
+			//hr = m_ConnectionPoint->Advise(m_OPCDataCallback, &m_Cookie);
+			//if( FAILED(hr) ) 
+			//{ 
+			//	delete m_OPCDataCallback;
+			//	m_OPCDataCallback = NULL;
 
-				_com_error err( hr );
-				m_DataReceiver->log_message( LogError, "1010: Advise к группе OPC сервера не прошел. (%s)", err.ErrorMessage() );  
-				return E_FAIL; 
-			}
+			//	_com_error err( hr );
+			//	m_DataReceiver->log_message( LogError, "1010: Advise к группе OPC сервера не прошел. (%s)", err.ErrorMessage() );  
+			//	return E_FAIL; 
+			//}
 		}
 
 		if( ItemsCount() > 1 )
@@ -507,7 +513,7 @@ OPCHANDLE OPCClient::AddTag( OPCHANDLE clientHandle, LPCTSTR tag_name, VARTYPE t
 }
 
 	/// удалить из группы указанный параметр
-void OPCClient::RemoveTag( OPCHANDLE clientHandle )
+void OPCClient::RemoveTag( OPCHANDLE /*clientHandle */)
 {
 	
 }
@@ -529,6 +535,7 @@ bool OPCClient::ReadValue( DWORD clientID, FILETIME &time, VARIANT &value, WORD 
 	OPCHANDLE servH = getItemByClientHandle(clientID)->hServerHandle;
 
 	// проверка правильности записанного значени€
+
 	HRESULT hr = SyncIO->Read( OPC_DS_CACHE, 1, &servH, &pItemState, &pErrors );
 	if( FAILED(hr) || ( pErrors != NULL && FAILED(*pErrors) ) || pItemState == NULL ) {
 		if( FAILED(*pErrors) ) 
@@ -554,6 +561,7 @@ bool OPCClient::ReadValue( DWORD clientID, FILETIME &time, VARIANT &value, WORD 
 		Quality = pItemState->wQuality;
 		time = pItemState->ftTimeStamp;
 		CoTaskMemFree( pItemState );
+
 		return true;
 	}
 
@@ -666,6 +674,8 @@ HRESULT OPCClient::AddParamToGroup( AG_OpcDA::Item* item/*, OPCHANDLE clientID*/
 			//freeItem( item_index );
 			//delete item;
 			//item = NULL;
+
+			hr = E_FAIL;
 		}
 
 		if( pResults )
@@ -902,6 +912,33 @@ bool OPCClient::WriteValue( LPCTSTR name, FILETIME &time, VARIANT &value, WORD Q
 		return SUCCEEDED( PutValueToOPC_Sync( item ) );
 }
 
+bool OPCClient::WriteValues(int nValues, DWORD clientIDs[], VARIANT values[])
+{
+	if (m_UseAsync) {
+		return false;
+	} else {
+		DWORD *serverHdls = new DWORD[nValues];
+		CString *names = new CString[nValues];
+
+		for (int i = 0; i < nValues; i++)
+		{
+			AG_OpcDA::Item * item = getItemByClientHandle( clientIDs[i] );
+			if( item == NULL )
+				return false;
+
+			serverHdls[i] = item->hServerHandle;
+			names[i] = item->name;
+		}
+
+		HRESULT hr = PutValuesToOPC_Sync(nValues, names, serverHdls, values);
+
+		delete [] serverHdls;
+		delete [] names;
+
+		return SUCCEEDED(hr);
+	}
+}
+
 /// записать значение параметра в сервер ASYNC 
 HRESULT OPCClient::PutValueToOPC_Async( AG_OpcDA::Item * item )
 {
@@ -922,24 +959,36 @@ HRESULT OPCClient::PutValueToOPC_Async( AG_OpcDA::Item * item )
 		return E_FAIL;
 	}
 	DWORD cancelID = 0;
+
 	hr = AsyncIO->Write( 1, &item->hServerHandle, &item->value,rand(),&cancelID, &pErrors);
 	if( FAILED(hr) /*|| FAILED(pErrors[0])*/) {
 		m_DataReceiver->log_message( LogError, "ѕараметр [%s] не передан", (LPCTSTR)item->name);
 		hr = E_FAIL;	
+
 	}
 	if( pErrors )
 	{
 		switch( pErrors[0] ) {
-			case OPC_S_CLAMP: m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_S_CLAMP] The value was accepted but was clamped.", (LPCTSTR)item->name  ); break;
-			case OPC_E_RANGE: m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_E_RANGE] The value was out of range.", (LPCTSTR)item->name  ); break;
+			case OPC_S_CLAMP: 
+				m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_S_CLAMP] The value was accepted but was clamped.", (LPCTSTR)item->name  ); 
+				break;
+			case OPC_E_RANGE: m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_E_RANGE] The value was out of range.", (LPCTSTR)item->name  ); 
+				break;
 			case OPC_E_BADTYPE: 
 				str.Format( "AsyncIO->Write(%s) -> [OPC_E_BADTYPE] The passed data type (%d) cannot be accepted for this item.", (LPCTSTR)item->name, item->value.vt  ); 
 				m_DataReceiver->log_message( LogError, str );
 				break;
-			case OPC_E_BADRIGHTS: m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_E_BADRIGHTS] The item is not writeable.", (LPCTSTR)item->name  ); break;
-			case OPC_E_INVALIDHANDLE: m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_E_INVALIDHANDLE] The passed item handle was invalid.", (LPCTSTR)item->name  ); break;
-			case OPC_E_UNKNOWNITEMID: m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_E_UNKNOWNITEMID] The item is no longer available in the server address space.", (LPCTSTR)item->name  ); break;
+			case OPC_E_BADRIGHTS: 
+				m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_E_BADRIGHTS] The item is not writeable.", (LPCTSTR)item->name  ); 
+				break;
+			case OPC_E_INVALIDHANDLE: 
+				m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_E_INVALIDHANDLE] The passed item handle was invalid.", (LPCTSTR)item->name  ); 
+				break;
+			case OPC_E_UNKNOWNITEMID: 
+				m_DataReceiver->log_message( LogError, "AsyncIO->Write(%s) -> [OPC_E_UNKNOWNITEMID] The item is no longer available in the server address space.", (LPCTSTR)item->name  ); 
+				break;
 		}
+
 	}
 	if( pErrors )
 		CoTaskMemFree( pErrors );
@@ -947,6 +996,66 @@ HRESULT OPCClient::PutValueToOPC_Async( AG_OpcDA::Item * item )
 	return hr;
 }
 
+HRESULT OPCClient::PutValuesToOPC_Sync( int nValues, 
+									   CString names[], // дл€ диагностики
+									   DWORD serverHdls[], 
+									   VARIANT values[] )
+{
+	HRESULT hr = S_OK;	
+
+	HRESULT      *pErrors    = NULL;
+	CComPtr<IOPCSyncIO> SyncIO;
+
+	if( m_DataReceiver == NULL ) 
+		return E_FAIL;
+
+	if( !isConnected() ) 
+		return E_FAIL;
+
+	ATLASSERT( m_Group );
+	hr = m_Group->QueryInterface( &SyncIO );
+
+	stringstream ss1; ss1 << "Sync multiple Write start (count="<< nValues << ")";
+
+	hr = SyncIO->Write( nValues, serverHdls, values, &pErrors);
+	stringstream sst; sst << "Sync Write finished. hr = " << hr;
+
+	if( FAILED(hr) /*|| FAILED(pErrors[0])*/) {
+		m_DataReceiver->log_message( LogError, "ѕараметр(ы) не передан");
+		hr = E_FAIL;	
+
+		if( pErrors != NULL)
+		{
+			switch( pErrors[0] ) {
+			case OPC_S_CLAMP: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write -> [OPC_S_CLAMP] The value was accepted but was clamped."); 
+				break;
+			case OPC_E_RANGE: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write -> [OPC_E_RANGE] The value was out of range."); 
+				break;
+			case OPC_E_BADTYPE: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write -> [OPC_E_BADTYPE] The passed data type cannot be accepted for this item."); 
+				break;
+			case OPC_E_BADRIGHTS: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write -> [OPC_E_BADRIGHTS] The item is not writeable." ); 
+				break;
+			case OPC_E_INVALIDHANDLE: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write -> [OPC_E_INVALIDHANDLE] The passed item handle was invalid." ); 
+				break;
+			case OPC_E_UNKNOWNITEMID: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write -> [OPC_E_UNKNOWNITEMID] The item is no longer available in the server address space." ); 
+				break;
+			}
+
+		}
+
+	}
+
+	if( pErrors )
+		CoTaskMemFree( pErrors );
+
+	return hr;
+}
 
 /// записать значение параметра в сервер Sync 
 HRESULT OPCClient::PutValueToOPC_Sync( AG_OpcDA::Item * item )
@@ -956,28 +1065,56 @@ HRESULT OPCClient::PutValueToOPC_Sync( AG_OpcDA::Item * item )
 	HRESULT      *pErrors    = NULL;
 	CComPtr<IOPCSyncIO> SyncIO;
 
-	if( m_DataReceiver == NULL ) return E_FAIL;
-	if( !isConnected() ) return E_FAIL;
+	if( m_DataReceiver == NULL ) 
+		return E_FAIL;
+
+	if( !isConnected() ) 
+		return E_FAIL;
 
 	ATLASSERT( m_Group );
-	m_Group->QueryInterface( &SyncIO );
+	hr = m_Group->QueryInterface( &SyncIO );
 
+	stringstream ss1; ss1 << "Sync Write start (hdl="<< item->hServerHandle << ") value=" << item->value.fltVal;
 
 	hr = SyncIO->Write( 1, &item->hServerHandle, &item->value, &pErrors);
+
+	stringstream sst; sst << "Sync Write finished. hr = " << hr;
+
 	if( FAILED(hr) /*|| FAILED(pErrors[0])*/) {
 		m_DataReceiver->log_message( LogError, "ѕараметр [%s] не передан", (LPCTSTR)item->name);
 		hr = E_FAIL;	
-	}
-	if( pErrors )
-	{
-		switch( pErrors[0] ) {
-			case OPC_S_CLAMP: m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_S_CLAMP] The value was accepted but was clamped.", (LPCTSTR)item->name  ); break;
-			case OPC_E_RANGE: m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_RANGE] The value was out of range.", (LPCTSTR)item->name  ); break;
-			case OPC_E_BADTYPE: m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_BADTYPE] The passed data type cannot be accepted for this item.", (LPCTSTR)item->name  ); break;
-			case OPC_E_BADRIGHTS: m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_BADRIGHTS] The item is not writeable.", (LPCTSTR)item->name  ); break;
-			case OPC_E_INVALIDHANDLE: m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_INVALIDHANDLE] The passed item handle was invalid.", (LPCTSTR)item->name  ); break;
-			case OPC_E_UNKNOWNITEMID: m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_UNKNOWNITEMID] The item is no longer available in the server address space.", (LPCTSTR)item->name  ); break;
+
+		if( pErrors != NULL)
+		{
+			switch( pErrors[0] ) {
+			case OPC_S_CLAMP: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_S_CLAMP] The value was accepted but was clamped.", 
+					(LPCTSTR)item->name  ); 
+				break;
+			case OPC_E_RANGE: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_RANGE] The value was out of range.", 
+					(LPCTSTR)item->name  ); 
+				break;
+			case OPC_E_BADTYPE: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_BADTYPE] The passed data type cannot be accepted for this item.", 
+					(LPCTSTR)item->name  ); 
+				break;
+			case OPC_E_BADRIGHTS: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_BADRIGHTS] The item is not writeable.", 
+					(LPCTSTR)item->name  ); 
+				break;
+			case OPC_E_INVALIDHANDLE: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_INVALIDHANDLE] The passed item handle was invalid.", 
+					(LPCTSTR)item->name  ); 
+				break;
+			case OPC_E_UNKNOWNITEMID: 
+				m_DataReceiver->log_message( LogError, "SyncIO->Write(%s) -> [OPC_E_UNKNOWNITEMID] The item is no longer available in the server address space.", 
+					(LPCTSTR)item->name  ); 
+				break;
+			}
+
 		}
+
 	}
 
 	if( pErrors )

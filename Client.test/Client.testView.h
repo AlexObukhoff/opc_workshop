@@ -43,6 +43,8 @@ protected:
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
 public:
 	afx_msg void OnNMClick(NMHDR *pNMHDR, LRESULT *pResult);
+
+	LRESULT OnWmUpdateView(WPARAM wParam, LPARAM /*lParam*/);
 };
 
 #ifndef _DEBUG  // debug version in Client.testView.cpp

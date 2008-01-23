@@ -1,6 +1,8 @@
 #ifndef __TASK_H_LOADED__
 #define __TASK_H_LOADED__
 
+#include <Windows.h>
+
 class mutex_t 
 { 
     CRITICAL_SECTION cs;

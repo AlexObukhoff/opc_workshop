@@ -23,12 +23,12 @@
 using namespace std;
 
 /// by OPCFoundation
-#include "OPCError.h"
-#include "opcda.h"
-#include "opccomn.h"
+#include "../include/opcerror.h"
+#include "../include/opcda.h"
+#include "../include/opccomn.h"
 
 // exception type 
-#include "opcErr.h"
+#include "../include/opcErr.h"
 
 #include "ShutdownImpl.h"
 #include "OPCClient.h"

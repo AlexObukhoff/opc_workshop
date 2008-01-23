@@ -28,4 +28,11 @@ public:
 	DECLARE_MESSAGE_MAP()
 };
 
+struct load_test_step_info 
+{
+	int step_no;
+	int tags_processed;
+	int msec;
+};
+
 extern CClienttestApp theApp;

@@ -48,9 +48,17 @@ void COPCGroup::sendChangedDataToClient()
 
 	/// сначала отфильтруем все неактивные теги 
 	std::map<OPCHANDLE,CAG_Value>::iterator it,it2; 
-	for( it = m_FilteredData.begin(); it != m_FilteredData.end(); ) {
-		CAG_Value &value = (*it).second;
-		ItemsInGroup *item = (*m_ItemsAdded.find( value.m_NameId )).second;
+	for( it = m_FilteredData.begin(); it != m_FilteredData.end(); ) 
+	{
+		CAG_Value &value = it->second;
+	
+		ItemsInGroupMap::iterator f = m_ItemsAdded.find( value.m_NameId );
+
+		if (f == m_ItemsAdded.end()) {
+			continue;
+		}
+
+		ItemInGroup *item = f->second;
 		if( item ) 
 			if( !item->bActive ) {
 				it2 = it; ++it2; // берем следующий
@@ -90,7 +98,7 @@ void COPCGroup::sendChangedDataToClient()
 	// заполняем буффер 
 	for( i=0,it = m_FilteredData.begin(); it != m_FilteredData.end(); ++it, ++i) {
 		CAG_Value &value = (*it).second;
-		ItemsInGroup *item = (*m_ItemsAdded.find( value.m_NameId )).second;
+		ItemInGroup *item = (*m_ItemsAdded.find( value.m_NameId )).second;
 		
 		phClientItems[i] = item->hClient; 
 		VariantInit( &pvValues[i] );
@@ -147,3 +155,4 @@ void COPCGroup::sendChangedDataToClient()
 	CoTaskMemFree( pftTimeStamps );
 	CoTaskMemFree( pErrors );
 }
+

@@ -19,7 +19,7 @@
  ***************************************************************************/
 #pragma once
 
-#include "opcDataReceiver.h"
+#include "../include/opcDataReceiver.h"
 //**************************************************************************
 class COPCDataCallback : public IOPCDataCallback
 {

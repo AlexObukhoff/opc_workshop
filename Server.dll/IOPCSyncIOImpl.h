@@ -57,7 +57,7 @@ public:
 				continue;
 			}
 
-			ItemsInGroup *item = (*pT->m_ItemsAdded.find( phServer[i] )).second;
+			ItemInGroup *item = (*pT->m_ItemsAdded.find( phServer[i] )).second;
 
 			/// вычитываем последнее значение параметра
 

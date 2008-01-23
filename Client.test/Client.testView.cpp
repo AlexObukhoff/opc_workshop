@@ -18,6 +18,7 @@
 IMPLEMENT_DYNCREATE(CClienttestView, CListView)
 
 BEGIN_MESSAGE_MAP(CClienttestView, CListView)
+	ON_MESSAGE(WM_UPDATE_VIEW, OnWmUpdateView)
 	ON_NOTIFY_REFLECT(NM_CLICK, OnNMClick)
 END_MESSAGE_MAP()
 
@@ -139,4 +140,13 @@ void CClienttestView::OnNMClick(NMHDR *pNMHDR, LRESULT *pResult)
 	GetDocument()->SetSelection(selected);
 
 	*pResult = 0;
+}
+
+
+LRESULT CClienttestView::OnWmUpdateView(WPARAM wParam, LPARAM /*lParam*/)
+{
+	CDocument *pDoc = GetDocument();
+	pDoc->UpdateAllViews(NULL, wParam);
+
+	return 0;
 }
