@@ -21,8 +21,7 @@
 //
 // RarefiedArray.h 
 //
-//  Разреженный массив для экономии памяти. Конечно можно вместо него использовать std::map
-//   но это может быть не всегда удобно.
+//  Rarefied array foe memory economy. Maybe must use std::map, but it not always comfortable
 // 
 template <typename T>
 class CRarefiedArray :
@@ -51,7 +50,7 @@ public:
 	T& operator []( DWORD index )
 	{
 		T* val = NULL;
-		//TODO потом переписать с помощью reserve() & operator[]
+		//TODO after rewrite with helps of reserve() & operator[]
 		//while( index >= m_vector.size() )
 		//	m_vector[index] = .insert( std::[pair NULL );
 		TArray::iterator it = m_vector.find( index );

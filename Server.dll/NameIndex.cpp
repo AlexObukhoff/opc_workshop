@@ -30,7 +30,7 @@ DWORD CNameIndex::MaxIndex()
 }
 
 
-/// добавить пару, например из базы :D 
+/// add pair %)
 void CNameIndex::addPair( DWORD id, LPCTSTR name )
 {
 thread::CCritSectLocker locker(m_sect);

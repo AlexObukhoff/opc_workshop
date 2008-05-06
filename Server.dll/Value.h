@@ -27,15 +27,14 @@
 class CAG_ValueBuffer
 {
 public:
-	DWORD m_NameId;			// идентификатор имени параметра
-	FILETIME m_Time;		// время параметра
+	DWORD m_NameId;			// ID of parametr 
+	FILETIME m_Time;		// time of parametr 
 	WORD m_Quality;		    // OPC quality
 
-	// Источник тэга, нужен для рассылки уведомлений об изменении тэга 
-	//      потребителям внутри сервера
+	// Tag source link, need for notifi subscribers inside server 
 	enum {SRC_SERVER = 0, SRC_CLIENT } m_Value_src;
 
-	CComVariant m_Value;	// Значение параметра
+	CComVariant m_Value;	// tag value 
 	
 	CAG_ValueBuffer(CComVariant &value)  {
 		ZeroMemory( this, sizeof(CAG_ValueBuffer) );	
@@ -73,18 +72,18 @@ class CAG_Value :
 
 public:
 
-	CString m_Name;			// текстовое имя параметра
+	CString m_Name;			// text name of parametr 
 	VARTYPE m_Type;
 	
 	CAG_Value() { 
 		m_Type = VT_EMPTY; 
 		m_Value_src = SRC_SERVER;
-		m_Quality = 192; //КДБ:  QUAL_GOOD - считаем, что параметр по умолчанию хороший
+		m_Quality = 192; //КДБ:  QUAL_GOOD - by default consider quality is good
 	}
 
 	CAG_Value(CComVariant &value) : CAG_ValueBuffer(value) {}
 
-	/// копирующий конструктор
+	/// copy constructor
 	CAG_Value(const CAG_Value& val)
 	{
 		ravno(val);
@@ -92,7 +91,7 @@ public:
 	
 	CAG_Value(CAG_ValueBuffer* buff)
 	{
-		*this = buff; // используем нижеследующий оператор присваивания 
+		*this = buff; // use operator= 
 	}
 
 	inline const CAG_Value& operator =(const CAG_Value& val)
@@ -118,7 +117,7 @@ public:
 	inline bool operator !=(const CAG_Value& val)
 	{
 		return ( m_NameId != val.m_NameId ||
-				 // m_Time   != val.m_Time   ||  будем сравнивать только значения и статусы 
+				 // m_Time   != val.m_Time   ||  compare value and status only 
 				 m_Value  != val.m_Value    ||
 				 m_Quality != val.m_Quality ||
 				 m_Name != val.m_Name /*||

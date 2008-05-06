@@ -20,7 +20,7 @@
  
 #pragma once
 
-/// сравнение на меньше двух FILETIME
+/// compare two FILETIME for "less"
 inline bool operator <(const FILETIME& a,const FILETIME& b)
 {
 	if( a.dwHighDateTime < b.dwHighDateTime ) return true;
@@ -28,32 +28,33 @@ inline bool operator <(const FILETIME& a,const FILETIME& b)
 		a.dwLowDateTime < b.dwLowDateTime) return true;
 	return false;
 }
-/// сравнение на меньше равно двух FILETIME
+/// compare two FILETIME for "less or equal"
 inline bool operator <=(const FILETIME& a,const FILETIME& b)
 {
 	return !(b < a);
 }
 
-/// сравнение на больше двух FILETIME
+/// compare two FILETIME for "great"
 inline bool operator >(const FILETIME& a,const FILETIME& b)
 {
 	return !(a <= b);
 }
 
-/// сравнение на больше равно двух FILETIME
+
+/// compare two FILETIME for "great or equal"
 inline bool operator >=(const FILETIME& a,const FILETIME& b)
 {
 	return !(a < b);
 }
 
-/// сравнение двух FILETIME
+/// compare two FILETIME
 inline bool operator ==(const FILETIME& a,const FILETIME& b)
 {
 	return ( a.dwHighDateTime == b.dwHighDateTime &&
 		     a.dwLowDateTime == b.dwLowDateTime );
 }
 
-/// сравнение на неравенство двух FILETIME
+/// compare two FILETIME for "not equal"
 inline bool operator !=(const FILETIME& a,const FILETIME& b)
 {
 	return ( a.dwHighDateTime != b.dwHighDateTime ||

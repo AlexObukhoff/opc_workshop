@@ -85,20 +85,20 @@ COPCServerObjectImpl::~COPCServerObjectImpl(void)
 	}
 }
 
-/// Установить имя объекта сервера
+/// Set server name ( e.g. "OPCWorkshop.DemoServer" )
 void COPCServerObjectImpl::setServerProgID(LPCTSTR progID)
 {
 	OPCServerProgID = progID;
 }
 
-/// установить CLSID сервера 
+/// set CLSID of server 
 void COPCServerObjectImpl::setServerCLSID(REFCLSID progID)
 {
 	CLSID_OPCServerEXE  = progID;
 }
 
 
-/// зарегистрировать сервер в системе
+/// Register a server in system
 int COPCServerObjectImpl::RegisterServer()
 {
 	char np[FILENAME_MAX + 32] = {0};
@@ -110,14 +110,14 @@ int COPCServerObjectImpl::RegisterServer()
 							   OPCServerProgID, np, 0);
 }
 
-/// резрегистрировать сервер в системе
+/// Unregister a server in system
 int COPCServerObjectImpl::UnregisterServer()
 {
 	g_BrowseItems.erase( g_BrowseItems.begin(), g_BrowseItems.end() );
 	return ServerUnregister(&CLSID_OPCServerEXE, OPCServerProgID);
 }
 
-/// запустить сервер
+/// To start a server
 int COPCServerObjectImpl::StartServer(OPCSERVERSTATE state)
 {
 	HRESULT hr = CoRegisterClassObject(CLSID_OPCServerEXE, &my_CF,
@@ -142,7 +142,7 @@ void COPCServerObjectImpl::SetServerState(OPCSERVERSTATE state)
 
 extern CBrowseItemsList g_BrowseItems;
 
-/// отстановить процесс сервера
+/// To stop process of a server
 int COPCServerObjectImpl::StopServer()
 {
 	if( g_Server != NULL )
@@ -163,8 +163,8 @@ void COPCServerObjectImpl::SetDelimeter( const char *ch )
 }
 
 
-/// добавить тег в базу сервера
-///		при этом указывается тип тега и возможность клиенту писать в этот параметр
+/// add tag to server database
+///		return internal handle value or -1 if its parametr already exist 
 int COPCServerObjectImpl::AddTag( LPCTSTR name, VARTYPE type, bool readOnly)
 {
 	if( g_BrowseItems.find( name ) == g_BrowseItems.end() )  // проверка на существование тега
@@ -181,7 +181,7 @@ int COPCServerObjectImpl::AddTag( LPCTSTR name, VARTYPE type, bool readOnly)
 	return -1;
 }
 
-/// передать значение параметра
+/// Set parametr value
 bool COPCServerObjectImpl::WriteValue( LPCTSTR name, FILETIME ft, WORD quality, const VARIANT &value )
 {
 	CBrowseItemsList::iterator it = g_BrowseItems.find( name );
@@ -203,7 +203,7 @@ bool COPCServerObjectImpl::WriteValue( LPCTSTR name, FILETIME ft, WORD quality, 
 	return SUCCEEDED( g_Server->m_DM.pushNewData( adapt ) );
 }
 
-/// передать значение параметра
+/// Set parametr value
 bool COPCServerObjectImpl::WriteValue( int hdl, FILETIME ft, WORD quality, const VARIANT &value )
 {
 	if (g_Server == NULL)

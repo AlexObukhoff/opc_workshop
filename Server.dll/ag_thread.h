@@ -28,7 +28,7 @@
 namespace thread {
 
 
-/// Блокировка критической секции
+/// Blocker for critical section 
 class CCritSectLocker
 {
 CComCriticalSection &m_sect;
@@ -54,14 +54,16 @@ class CThreadingObject
 protected:
 	/// thread handle
 	HANDLE m_ThreadHandle;
-	/// внутренний флаг выхода потока 
-	HANDLE m_hWantQuit,m_hWakeUp;
-	/// критическая секция для синхронизации операций в потоке 
+	/// signal for thread to end thread
+	HANDLE m_hWantQuit;
+	/// signal for thread to wakeup
+	HANDLE m_hWakeUp;
+	/// critical section for block some code in thread
 	CComAutoCriticalSection m_sect;
-	/// идентификатор потока - служит индикатором завершения потока 
+	/// thread id - indicate for process ending
 	volatile DWORD m_threadID;
 
-	/// вспомогательная функция для запуска потока 
+	/// helper for starting thread 
 	static DWORD WINAPI HelperThreadProc(LPVOID p)
 	{
 		CThreadingObject *obj = static_cast<CThreadingObject*>(p);
@@ -95,15 +97,14 @@ public:
 	}
 
 	/*! 
-		основная функция выполняемая постоянно в одном шаге процесса
-		реализуется наследником класса 
+		thread function for process 
+		implement by child class 
 	*/
 	virtual void step() = 0;
 	
 
 	/*! 
-		основная функция выполняемая в отдельном потоке
-		может реализовываться наследником класса 
+		main thread function 
 	*/
 	virtual void run()
 	{
@@ -111,7 +112,7 @@ public:
 			HANDLE h[2] = {  m_hWakeUp, m_hWantQuit };
 			DWORD ret_code = WaitForMultipleObjects( 2, h, FALSE, INFINITE);
 			switch(ret_code) {
-				case WAIT_OBJECT_0: //  если сигнал m_hWakeUp
+				case WAIT_OBJECT_0: //  if signalling m_hWakeUp
 					try {
 						ResetEvent( m_hWakeUp );
 						step();
@@ -119,13 +120,13 @@ public:
 						ATLTRACE(_T("Exception at %s [%d]\n"),__FILE__,__LINE__);
 					}
 				break;
-				default: // на выход 
+				default: // to exit thread
 					return;
 			}
 		}
 	}
 
-	/// проверка работает ли еще поток 
+	/// check " thread still running "
 	inline bool isRunning()
 	{ 
 		DWORD th = NULL;
@@ -142,7 +143,7 @@ public:
 //		return th != NULL; 
 	}
 
-	/// запуск дочернего процесса
+	/// execute child thread
 	bool Execute(void)
 	{
 		DWORD threadID;
@@ -155,12 +156,12 @@ public:
 		return (m_ThreadHandle != NULL);
 	}
 	
-	/// посылка сигнала на запуск следующего шага 
+	/// send wakeup signal to thread (for run next step)
 	void WakeUp(void) 
 	{
 		SetEvent( m_hWakeUp );
 	}
-	/// завершение работы процесса
+	/// termination thread working
 	void Shutdown(void)
 	{
 		DWORD count = 0;

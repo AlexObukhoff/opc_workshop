@@ -35,7 +35,7 @@ namespace Utils
 {
 
 	/*!
-		Класс осуществляет извлечение произвольных частей из полного пути к файлу
+		extract any path parts 
 	*/
 	class CPathExtractor
 	{
@@ -53,9 +53,9 @@ namespace Utils
 			_tsplitpath(filename, drive, dir, fname, ext );
 		}
 
-		/*! Возвращает полный путь 
-			БЫЛО: c:\temp\aaa.txt
-			Вернет: c:\temp
+		/*! Return full path
+			if pass: c:\temp\aaa.txt
+			returning: c:\temp
 		*/
 		CString path()
 		{
@@ -64,17 +64,17 @@ namespace Utils
 			str.Format(_T("%s%s"), drive, dir);
 			return str;
 		}
-		/*! Возвращает имя файла 
-			БЫЛО: c:\temp\aaa.txt
-			Вернет: aaa
+		/*! return file name 
+			if pass: c:\temp\aaa.txt
+			return: aaa
 		*/
 		CString name()
 		{
 			return CString(fname);
 		}
-		/*! Возвращает имя файла c расширением
-			БЫЛО: c:\temp\aaa.txt
-			Вернет: aaa.txt
+		/*! return full file name 
+			if pass: c:\temp\aaa.txt
+			return: aaa.txt
 		*/
 		CString full_name()
 		{
@@ -105,7 +105,7 @@ HRESULT hr;
 	hr = lpSPP->GetPages(&cauuid);
 	if FAILED(hr)
 		return hr;
-//	lpSPP.Release(); само по деструктору отвалится 
+//	lpSPP.Release(); auto release by destructor
 
 	std::vector<GUID> pages;
 	for(ULONG i=0;i<cauuid.cElems;i++)
@@ -162,7 +162,7 @@ inline bool isFileExists (LPCTSTR fname)
     WIN32_FIND_DATA wfd;
     HANDLE hFind = ::FindFirstFile(fname, &wfd);
     if (INVALID_HANDLE_VALUE != hFind) {
-        // Если этого не сделать то произойдет утечка ресурсов
+        // avoid resource leak 
         ::FindClose(hFind);
         return true;
     }
@@ -177,7 +177,7 @@ inline bool isDirectory (LPCTSTR fname)
     HANDLE hFind = ::FindFirstFile(str, &wfd);
 	if (INVALID_HANDLE_VALUE != hFind && 
 		(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
-        // Если этого не сделать то произойдет утечка ресурсов
+		// avoid resource leak 
         ::FindClose(hFind);
         return true;
     }

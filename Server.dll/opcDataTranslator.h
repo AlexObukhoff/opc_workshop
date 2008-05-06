@@ -30,7 +30,8 @@ public:
 	{
 		m_Receiver = NULL;
 	}
-	/// фильтрует пераметры из входной очереди, и отправляет их клиенту
+
+	/// filtering tags from input queue and pass its to customers
 	virtual void step()
 	{
 		CAG_Value* adapt = NULL;

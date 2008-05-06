@@ -22,8 +22,8 @@
 #include "OPCServerObject.h"
 
 /*!
-	Реализация Интерфейсного класса для работы с OPC сервером 
-	все функции возвращают 0 если нет ошибок
+	Realisation if interface class for working with opc server object
+	all function returning 0 for success
 */
 class COPCServerObjectImpl : public COPCServerObject
 {
@@ -33,36 +33,36 @@ public:
 	COPCServerObjectImpl(void);
 	virtual ~COPCServerObjectImpl(void);
 
-	/// Установить имя объекта сервера
+	/// Set server name ( e.g. "OPCWorkshop.DemoServer" )
 	void setServerProgID(LPCTSTR progID);
 
-	/// установить CLSID сервера 
+	/// set CLSID of server 
 	void setServerCLSID(REFCLSID progID);
 
-	/// зарегистрировать сервер в системе
+	/// Register a server in system
 	int RegisterServer();
 
-	/// резрегистрировать сервер в системе
+	/// Unregister a server in system
 	int UnregisterServer();
 
-    /// запустить сервер
+	/// To start a server
 	int StartServer(OPCSERVERSTATE state = OPC_STATUS_NOCONFIG);
 
-    /// отстановить процесс сервера
+	/// To stop process of a server
 	int StopServer();
 
 	/// 
 	void SetServerState(OPCSERVERSTATE state);
 
-	/// указать серверу разделитель в именах параметров
+	/// to specify to a server a divider in names of parameters 
+	///   by default it is dot.
 	void SetDelimeter( const char *ch );
 
-	/// добавить тег в базу сервера
-	///		при этом указывается тип тега и возможность клиенту писать в этот параметр
-	///     Возвращаемое значение - внутренний хэндл или -1 в случае, если такой тэг уже существует
+	/// add tag to server database
+	///		return internal handle value or -1 if its parametr already exist 
 	int AddTag( LPCTSTR name, VARTYPE type, bool readOnly = true);
 
-	/// передать значение параметра
+	/// Set parametr value
 	bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, const VARIANT &value );
 	bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, int value );
 	bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, float value );
@@ -71,7 +71,7 @@ public:
 	bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, float* value, unsigned count );
 	bool WriteValue( LPCTSTR name, FILETIME ft, WORD quality, double* value, unsigned count );
 
-	/// передать значение параметра
+	/// Set parametr value
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, const VARIANT &value );
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, int value );
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, float value );
@@ -80,11 +80,11 @@ public:
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, float* value, unsigned count );
 	virtual bool WriteValue( int hdl, FILETIME ft, WORD quality, double* value, unsigned count );
 
-	/// указать серверу интерфейс по которому сообщать об изменении параметров базы
+	/// To specify to a server the interface on which to inform on change of parameters of base
 	void setDataReceiver( COPCReceiveData *receiver);
 
 public:
-	// константы 
+	// constants
 	virtual WORD QualityGood(void);
 	virtual WORD QualityBad(void);
 	virtual FILETIME FILETIME_NULL(void);

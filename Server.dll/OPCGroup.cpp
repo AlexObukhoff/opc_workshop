@@ -31,8 +31,8 @@
 
 void COPCGroup::FinalRelease()
 {
-	// здесь мы сообщаем объекту сервера, что группа уничтожена, 
-	//  вдруг клиент не вызвал RemoveGroup, или просто свалился 
+	// tell server object about destroyed group object
+	//  (if client dont call server->RemoveGroup - prograd may crash)
 	if( m_ParentServer != NULL ) {
 		m_ParentServer->RemoveGroup( m_ServerHandle, TRUE );
 	}
@@ -46,7 +46,7 @@ void COPCGroup::sendChangedDataToClient()
 
 	thread::CCritSectLocker locker2( m_FilteredDataSect );
 
-	/// сначала отфильтруем все неактивные теги 
+	/// filtering none active tags
 	std::map<OPCHANDLE,CAG_Value>::iterator it,it2; 
 	for( it = m_FilteredData.begin(); it != m_FilteredData.end(); ) 
 	{
@@ -61,20 +61,20 @@ void COPCGroup::sendChangedDataToClient()
 		ItemInGroup *item = f->second;
 		if( item ) 
 			if( !item->bActive ) {
-				it2 = it; ++it2; // берем следующий
-				m_FilteredData.erase(it); // удаляем неактивный тег
-				it = it2; // встаем на следующий элемент
-				continue; // пропускаем переход цикла на следующий элемент 
+				it2 = it; ++it2; // get next 
+				m_FilteredData.erase(it); // remove not active 
+				it = it2; // take next 
+				continue; // skip cycle iterator increment
 			}
 		++it;
 	}
 
-	/// поддержка асинхронного чтения 
+	/// support async reading
 	{
 		thread::CCritSectLocker locker( m_AsyncReadSect );
 		std::set<OPCHANDLE>::iterator it;
 		for( it = m_AsyncRead.begin(); it != m_AsyncRead.end(); ++it) {
-			// если такого параметра нет в сиписке на отсылку
+			// if paraments not exist in subscription list 
 			if(m_FilteredData.find( *it ) == m_FilteredData.end() )
 				m_FilteredData.insert( std::pair<OPCHANDLE,CAG_Value>( *it, m_LastValues[*it] ));
 		}
@@ -82,9 +82,9 @@ void COPCGroup::sendChangedDataToClient()
 	}
 
 
-	/// а теперь все что осталось отошлем получателю
+	/// now all remaining send to client 
 	DWORD dwCount = m_FilteredData.size();
-	if( dwCount == 0) return; // тут делать нечего
+	if( dwCount == 0) return; // now nothin to do 
 
 	OPCHANDLE *phClientItems = allocate_buffer<OPCHANDLE>( dwCount );
 	VARIANT	  *pvValues = allocate_buffer<VARIANT>( dwCount );
@@ -95,7 +95,7 @@ void COPCGroup::sendChangedDataToClient()
 	HRESULT hrMasterquality = S_OK;
 	HRESULT hrMastererror = S_OK;
 
-	// заполняем буффер 
+	// fill buffers
 	for( i=0,it = m_FilteredData.begin(); it != m_FilteredData.end(); ++it, ++i) {
 		CAG_Value &value = (*it).second;
 		ItemInGroup *item = (*m_ItemsAdded.find( value.m_NameId )).second;
@@ -117,7 +117,7 @@ void COPCGroup::sendChangedDataToClient()
 //		ItemsInGroupMap::iterator it_item = m_ItemsAdded.find( *it );
 //		ItemsInGroup *item = (*it_item).second;
 //
-////		InterlockedExchange( & item->modified, FALSE ); // сбрасываем флажок 
+////		InterlockedExchange( & item->modified, FALSE ); // reset flag
 //
 //		phClientItems[i] = item->hClient; // (*it).second;
 //
@@ -144,7 +144,7 @@ void COPCGroup::sendChangedDataToClient()
 		} catch(...) {
 
 		}
-	/// очищаем буффер
+	/// clean buffers 
 	m_FilteredData.erase( m_FilteredData.begin(), m_FilteredData.end() );
 
 	CoTaskMemFree( phClientItems );

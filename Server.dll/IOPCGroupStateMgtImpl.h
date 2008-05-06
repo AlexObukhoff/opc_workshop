@@ -114,7 +114,7 @@ public:
 		if(pT->m_Deleted) 
 			return E_FAIL;
 
-		// Посылка сообщения серверу об изменении имени группы 
+		// Send signal to server about group name changing
 		//pT->Fire_Event( 1, &CComVariant( CComBSTR(pT->m_GroupName)),
 		//				   &CComVariant( CComBSTR(szName )),
 		//				   &CComVariant( CComBSTR(L"IOPCGroup")) );

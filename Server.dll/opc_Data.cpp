@@ -41,6 +41,9 @@ using namespace std;
 		 новая порция данных в файл.
 		  Похоже, что это нужно реализовывать на уровне CDumpFile :)
 
+For non russian users:
+#1 - is complete 
+#2 - is out of date and dont need yet
 
 */
 namespace opcData {
@@ -71,7 +74,7 @@ COPCDataManager::COPCDataManager()
 
 COPCDataManager::~COPCDataManager()
 {
-	/// освобождаем себя от связей 
+	/// free onself from links
 	while( m_CustomerList.size() ) {
 		COPCDataCustomerList::iterator it = m_CustomerList.begin();
 		(*it)->Unsubscribe();
@@ -79,7 +82,7 @@ COPCDataManager::~COPCDataManager()
 	Shutdown();
 }
 
-/// подписать кастомера на поток данных от манагера
+/// subscribe customer to data flow from manager
 bool COPCDataManager::AddCustomer( COPCDataCustomer *cust)
 {
 thread::CCritSectLocker locker(&m_CustomerSect);
@@ -96,7 +99,7 @@ COPCDataCustomerList::iterator it;
 	return true;
 }
 
-/// удалить кастомера из подписки
+/// remove customer from subscription list
 bool COPCDataManager::RemoveCustomer( COPCDataCustomer *cust)
 {
 thread::CCritSectLocker locker(&m_CustomerSect);
@@ -113,36 +116,36 @@ COPCDataCustomerList::iterator it;
 
 
 
-/// засовываем в манагер новую порцию данных
+/// pass new data pack to manager 
 HRESULT COPCDataManager::pushNewData( CAG_ValueVector *vect )
 {
 	if(vect == NULL) return E_INVALIDARG;
 
 	m_Queue.push( vect );
-	// если не был запущен - запускаем
+	// if not running - execute manager thread 
 	if(! isRunning() ) Execute();
-	// пинаем процесс раздачи слонов, что бы тот проснулся
+	// wakeup thread for processing queue
 	WakeUp();
 
 	return S_OK;
 }
 
-/// засовываем в манагер новую порцию данных
+/// pass new data to manager 
 HRESULT COPCDataManager::pushNewData( CAG_Value &val )
 {
 	CAG_ValueVector *vect = new CAG_ValueVector;
 	vect->push_back( val );
 
 	m_Queue.push( vect );
-	// если не был запущен - запускаем
+	// if not running - execute manager thread 
 	if(! isRunning() ) Execute();
-	// пинаем процесс раздачи слонов, что бы тот проснулся
+	// wakeup thread for processing queue
 	WakeUp();
 
 	return S_OK;
 }
 
-/// получить из глобального буфера последние значения 
+/// get last value of parametr 
 CAG_Value COPCDataManager::getLastValue( DWORD nameID )
 {
 	CLockWrite locker(m_LastValue);
@@ -150,7 +153,7 @@ CAG_Value COPCDataManager::getLastValue( DWORD nameID )
 	return m_LastValue[ nameID ];
 }
 
-/// процедура распихивающия данные по подписчикам.
+/// process tags from input queue through filter 
 void COPCDataManager::step()
 {
 	CAG_ValueVector *vect = NULL;
@@ -224,73 +227,75 @@ bool COPCDataCustomer::Unsubscribe()
 	return true;
 }
 
-/// передать подписчику очередной параметр
+/// to transfer the subscriber the next parameter 
+/// this function should give management as soon as possible		
 int COPCDataCustomer::pushData(CAG_Value* adap, bool copy)
 {
 	if( adap == NULL ) 
 		throw( "COPCDataCustomer::pushData(CAG_Value* adap)" );
 
-	/// Запихиваем данные в свою очередь и будим поток обработки данных
+	/// push date into our queue
 	if( copy ) 
 		m_Queue.push( new CAG_Value( *adap ) );
 	else 
 		m_Queue.push( adap );
 
-	// если не был запущен - запускаем
+	// if it wosn`t started - start
 	if(! isRunning() ) Execute();
-	// пинаем процесс фильтрации данных
+	// wakeup thread for processing date
 	WakeUp();
 	return 0;
 }
 
-/// передать подписчику вектор очередных параметров
+/// pass to subscribers vector of date 
 int COPCDataCustomer::pushData(CAG_ValueVector* adap)
 {
 	if( adap == NULL ) 
 		throw( "COPCDataCustomer::pushData(CAG_ValueVector* adap)" );
 
-	/// Запихиваем данные в свою очередь и будим поток обработки данных
+	/// push date into our queue
 	m_Queue.push_copy( adap->begin(), adap->end() );
 
-	// если не был запущен - запускаем
+	// if it wosn`t started - start
 	if(! isRunning() ) Execute();
-	// пинаем процесс фильтрации данных
+	// wakeup thread for processing date
 	WakeUp();
 	return 0;
 }
 
-/// устанавливает принимать ли все параметры подписчику
+/// Whether establishes to accept all parameters to the subscriber
 void COPCDataCustomer::SetAcceptAll( bool allow )
 {
 	m_AcceptAllData = allow;
 }
-/// сбрасывает список параметров, которые может принимать подписчик
+/// Reset the list of parameters which the subscriber can accept
 void COPCDataCustomer::ResetAcceptList( )
 {
 	thread::CCritSectLocker locker(&m_AcceptedParamsSect);
 	m_AcceptedParams.erase( m_AcceptedParams.begin(), m_AcceptedParams.end() );
 }
-/// добавляет в список элемент, который будет приниматься подписчиком.
+/// add accepting parametr
 void COPCDataCustomer::AcceptParam( OPCHANDLE h )
 {
 	thread::CCritSectLocker locker(&m_AcceptedParamsSect);
 	m_AcceptedParams.insert( h );
 }
 
-/// удаляет элемент из списка подписки
+/// remove accepting paramrt
 void COPCDataCustomer::DeclineParam( OPCHANDLE h )
 {
 	thread::CCritSectLocker locker(&m_AcceptedParamsSect);
 	m_AcceptedParams.erase( h );
 }
 
-/// проверяет подписан ли потребитель на данный параметр
+/// check parametr (it in accepting list)
 bool COPCDataCustomer::isAcceptedParam( OPCHANDLE h )
 {
 	thread::CCritSectLocker locker(&m_AcceptedParamsSect);
 	return m_AcceptedParams.find( h ) != m_AcceptedParams.end();
 }
 
+/// get last value of parametr 
 bool COPCDataCustomer::getLastValue( OPCHANDLE h, CAG_Value& value )
 {
 	CLockRead locker( m_LastValues );
@@ -299,7 +304,7 @@ bool COPCDataCustomer::getLastValue( OPCHANDLE h, CAG_Value& value )
 }
 
 
-/// запихивает тег в конечный буффер для отправки клиенту 
+/// Pushs value in final queue for sending to the client
 void COPCDataCustomer::PushToClient( CAG_Value* adapt )
 {
 #if USE_NEW_DATA_FILTER == 0
@@ -319,7 +324,7 @@ void COPCDataCustomer::PushToClient( CAG_Value* adapt )
 #endif
 }
 
-/// фильтрует пераметры из входной очереди, и перекладывает их в внутренний буффер.
+/// process tags from input queue through filter to internal queue
 void COPCDataCustomer::step()
 {
 	CAG_Value* adapt = NULL;
@@ -346,7 +351,7 @@ void COPCDataCustomer::step()
 
 /*
 //////////////////////////////////////////////////////////////////////////////////////////////////
-/// Класс источник данных
+/// data source class
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 COPCDataSource::COPCDataSource()

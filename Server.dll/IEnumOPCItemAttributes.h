@@ -4,6 +4,7 @@
 class ItemInGroup;
 class CItemForBrowse;
 
+/// enumerator opc item attributes 
 class ATL_NO_VTABLE CIEnumOPCItemAttributes :
 	public CComObjectRootEx<CComSingleThreadModel>,
 	public CComCoClass<CIEnumOPCItemAttributes>,

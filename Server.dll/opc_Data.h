@@ -24,22 +24,26 @@
 #include "RarefiedArray.h"
 
 /*
-     Идеология такая, что источник данных передает пачку данных в COPCDataManager::pushNewData
-     где она попадает в общую очередь
-	 пачки данных разбиваются в сплошной поток данных и распихиваются по подписчикам (COPCDataCustomer)
-
-	 Реализация COPCDataCustomer позволяет управлять какие параметры будут попадать во внутреннюю очередь
-	 параметров. ( SetAcceptAll, ResetAcceptList, AcceptParam )
+Ideology: 
+	Data sources transfer data in to COPCDataManager::pushNewData.
+	COPCDataManager collect data into solid queue. From main queue date assorting and pushing 
+	to subscribers (COPCDataCustomer).
+	
+	Realization COPCDataCustomer allows what parameters will operate to get in internal queue of parameters. 
+	(SetAcceptAll, ResetAcceptList, AcceptParam)
 */
+
 
 #define MAX_CUSTOMER_BUFFER 10000
 
-/* 
-   Флаг отвечающий за возможность фильтрования одинаковых значений параметра 
-   если в сервер записали тег с тем-же самым значением и статусом, но другим временем, то при 
-   USE_NEW_DATA_FILTER == 1 такой тег передаваться клиенту не будет, иначе будет передаваться все 
-   что в сервер записано.
+/*
+	Flag responsible for an opportunity of filtering of identical values of parameter if in 
+	a server have written down tag with the same value and the status, but other time.
+	
+	If USE_NEW_DATA_FILTER == 1 such tag it will not be transferred the client, all will 
+	be transferred differently that in a server is written down.
 */
+
 #define USE_NEW_DATA_FILTER 1
 
 namespace opcData {
@@ -52,7 +56,7 @@ class COPCDataSource;
 
 typedef std::list<COPCDataCustomer*> COPCDataCustomerList;
 
-/// абстрактный класс для реализации общей функциональности подписчиков и источников
+/// base abstract class for date sources and customers
 class COPCDataOperator
 {
 public:
@@ -65,17 +69,16 @@ public:
 	virtual bool Unsubscribe() = 0;
 };
 
-/// шаблон реализующий очередь произвольных типов защищенную с помощью критической секции
-/// в основном подходит только для указателей, но если есть копирующий конструктор
-/// то можно и без указателей
+/// Template: queue of abstract date type (bloking by critical section)
+/// date type must be have copy constructor 
 template <class T>
 class COPCDataQueue //: private CComAutoCriticalSection
 {
-	/// очередь параметров
+	/// queue of parametrs 
 	CComAutoCriticalSection m_QueueSect;
 	std::list<T*> m_Queue;
 public:
-	/// засунуть в очередь диапазон (с копированием)
+	/// push to queue (with copying)
 	template< class _it >
 	void push_copy ( _it begin, _it end )
 	{
@@ -84,7 +87,7 @@ public:
 			m_Queue.push_back( new T(*it) );
 	}
 
-	/// засунуть в очередь диапазон
+	/// push to queue
 	template< class _it >
 	void push ( _it begin, _it end )
 	{
@@ -92,14 +95,14 @@ public:
 		m_Queue.insert( m_Queue.end(), begin, end );
 	}
 
-	/// засунуть в очередь
+	/// push to queue one value
 	void push ( T* value )
 	{
 		thread::CCritSectLocker locker(&m_QueueSect);
 		m_Queue.push_back( value );
 	}
 
-	/// выплюнуть из очереди
+	/// pop for queue
 	T* pop()
 	{
 		thread::CCritSectLocker locker(&m_QueueSect);
@@ -108,10 +111,11 @@ public:
 			m_Queue.pop_front();
 			return vect;
 		}
-		/// если пусто, то возвращаем нулевое значение - поэтому можно держать только указатели
+		/// if empty returning NULL value (Therefore it is possible to hold only pointers)
 		return NULL;
 	}
-	/// получить размер очереди 
+
+	/// get queue size
 	size_t size()
 	{
 		thread::CCritSectLocker locker(&m_QueueSect);
@@ -120,28 +124,28 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-/// подписчик на данные от COPCDataManager
+/// The subscriber on given from COPCDataManager
 class COPCDataCustomer :
 	public COPCDataOperator,
 	private thread::CThreadingObject
 {
 protected:
-	/// флаг признака, что приемник принимает все параметры
+	/// The attribute, that the receiver accepts all parameters
 	bool m_AcceptAllData;
 	CComAutoCriticalSection m_AcceptedParamsSect;
 	std::set<OPCHANDLE> m_AcceptedParams;
 
-	/// очередь нефильтрованных параметров
+	/// queue of not filtered parameters
 	COPCDataQueue<CAG_Value> m_Queue;
 
-	/// Архив последних значений каждого параметра
+	/// Archive of last values of each parameter
 	CRarefiedArray<CAG_Value> m_LastValues;
-	/// запихивает тег в конечный буффер для отправки клиенту 
+	/// Pushs value in final queue for sending to the client
 	void PushToClient( CAG_Value* adapt );
 protected:
-	/// фильтрованные параметры.
+	/// The filtered parameters.
 	std::map<OPCHANDLE,CAG_Value> m_FilteredData;
-	/// критическая секция защищает вектор m_FilteredData
+	/// The critical section protects a vector m_FilteredData
 	CComAutoCriticalSection m_FilteredDataSect;
 
 
@@ -155,40 +159,41 @@ public:
 		PUSH_DATA_BY_ONE,
 		PUSH_DATA_BY_PACK
 	};
-	/// функция перегружаемая наследником класса,
-	/// выдает true если нужно отдавать подписчику параметры не по одному а всей пачкой 
-	// virtual CustomerType pushDataType(); (может и не нужна)
 
-	/// передать подписчику очередной параметр
-	/// эта функция должна отдавать управление как можно быстрее
+	/// to transfer the subscriber the next parameter 
+	/// this function should give management as soon as possible		
 	virtual int pushData(CAG_Value* adap, bool copy = true);
-	/// передать подписчику очередную пачку параметров
-	/// эта функция должна отдавать управление как можно быстрее
+
+	/// to transfer the subscriber the next pack of parameters 
+	/// this function should give management as soon as possible
 	virtual int pushData(CAG_ValueVector* adap);
 
 
 public:
-	/// устанавливает принимать ли все параметры подписчику
+
+/// Tag filter acessors 
+
+	/// Whether establishes to accept all parameters to the subscriber
 	void SetAcceptAll( bool allow = true );
-	/// сбрасывает список параметров, которые может принимать подписчик
+	/// Reset the list of parameters which the subscriber can accept
 	void ResetAcceptList( );
-	/// добавляет в список элемент, который будет приниматься подписчиком.
+	/// add accepting parametr
 	void AcceptParam( OPCHANDLE h );
-	/// удаляет элемент из списка подписки
+	/// remove accepting paramrt
 	void DeclineParam( OPCHANDLE h );
-	/// проверяет подписан ли потребитель на данный параметр
+	/// check parametr (it in accepting list)
 	bool isAcceptedParam( OPCHANDLE h );
 
-	/// получить для определенного параметра его последнее значение 
+	/// get last value of parametr 
 	bool getLastValue( OPCHANDLE h, CAG_Value& value );
 
 protected:
-	/// фильтрует пераметры из входной очереди, и перекладывает их во внутренний буффер.
+	/// process tags from input queue through filter to internal queue
 	virtual void step();
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-/// класс обеспечивающий отношения между opc_DataSource & opc_DataCustomer
+/// source - customer manager 
 class COPCDataManager :
 	private thread::CThreadingObject
 {
@@ -206,29 +211,29 @@ public:
 
 private:
 	friend class COPCDataCustomer;
-	/// подписать кастомера на поток данных от манагера
+	/// subscripe customet to the main tag stream 
 	bool AddCustomer( COPCDataCustomer *cust);
-	/// удалить кастомера из подписки
+	/// remove customer subscription
 	bool RemoveCustomer( COPCDataCustomer *cust);
 
 public:
-	/// засовываем в манагер новую порцию данных
-	/// сам объект вектора остается у манагера и ставиться им в очередь, удалит он его сам.
+	/// push to subscribers new data pack
+	/// object 'vect' must be deliver to manager (after processing, manager call delete vect; )
 	virtual HRESULT pushNewData( CAG_ValueVector *vect );
 
-	/// засовываем в манагер новую порцию данных
-	/// сам объект вектора остается у манагера и ставиться им в очередь, удалит он его сам.
+	/// push to subscribers new data
 	virtual HRESULT pushNewData( CAG_Value &val );
 
-	/// процедура распихивающия данные по подписчикам.
+	/// function processing data to subscribers (customers)
 	virtual void step();
 
-	/// получить из глобального буфера последние значения 
+	/// get last value for tag
 	CAG_Value getLastValue( DWORD nameID );
 };
+
 /*
 //////////////////////////////////////////////////////////////////////////////////////////////////
-/// Класс источник данных
+/// data source class
 class COPCDataSource :
 	public COPCDataOperator
 {

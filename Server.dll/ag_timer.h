@@ -24,8 +24,8 @@ template <class T>
 class CWin32Timer :
 	private thread::CThreadingObject
 {
-	DWORD m_ms; // время таймера
-	T* m_ptr; // указатель на CallBack
+	DWORD m_ms; // timer period
+	T* m_ptr; // pointer to CallBack object 
 public:
 	CWin32Timer(T* ptr)
 	{	
@@ -62,11 +62,11 @@ public:
 			HANDLE h[2] = {  m_hWakeUp, m_hWantQuit };
 			DWORD ret_code = WaitForMultipleObjects( 2, h, FALSE, m_ms );
 			switch(ret_code) {
-				case WAIT_OBJECT_0: //  если сигнал m_hWakeUp - значит поменяли значение таймера
+				case WAIT_OBJECT_0: //  if signalling m_hWakeUp - timer period changed
 					ResetEvent( m_hWakeUp );
 					break;
-				case WAIT_OBJECT_0+1: // значит пора на выход
-					// предварительно сбрасываем флажок чтобы можно было запуститься еще раз
+				case WAIT_OBJECT_0+1: // timer must be exited
+					// reset exit signal for next restart
 					ResetEvent( m_hWantQuit );
 					return;
 				case WAIT_TIMEOUT:

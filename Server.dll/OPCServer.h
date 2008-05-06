@@ -28,7 +28,7 @@
 #include "Value.h"
 #include "ErrInfoAdapter.h"
 
-// главный 'движок' OPC сервера
+// main engine on OPC server
 #include "opc_Data.h"
 
 #include "NameIndex.h"

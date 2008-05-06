@@ -40,15 +40,15 @@ public:
 	END_COM_MAP()
 };
 
-/// класс который агрегируется в COPCServer и на каждый QueryInterface ( IID_IOPCBrowseServerAddressSpace ) 
-/// отдает новую копию класса броузера 
+/// class agregated in to COPCServer and for every  QueryInterface ( IID_IOPCBrowseServerAddressSpace ) 
+/// return new copy of browser object 
 class COPCBrowserAdapter :
 	public IUnknown
 	//public CComObjectRootEx<CComMultiThreadModel>,
 	//public CComCoClass<COPCBrowserAdapter>
 {
 ///  IUnknown implementation.
-	ULONG m_dwRef; /// внутренний счетчик ссылок	
+	ULONG m_dwRef; /// internal ref counter 
 	CComAutoCriticalSection m_sect;
 public:
 	COPCServer *m_server;

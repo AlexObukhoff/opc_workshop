@@ -109,6 +109,7 @@ public:
 			return hr;
 		}
 		// "Каждый пацак должен знать кто здесь чатланин !" (c)
+		// its a russian idioma. ~~ "Each descendant should know the father"
 		grpItem->m_Group->m_ParentServer = pT;
 
 		hr = grpItem->m_Group->QueryInterface( riid, (void**)ppUnk );
@@ -126,10 +127,10 @@ public:
 			*phServerGroup = grpItem->m_Group->m_ServerHandle;
 
 		grpItem->m_Group->Subscribe( &pT->m_DM  );
-//TODO - подписаться на события группы 
+//TODO - advise to group events 
 //		pT->AdviseAl( grpItem->m_Group->GetUnknown() );
 
-		/// сбрасываем сигнал об пустом списке групп 
+		/// reset signal about empty group list
 		m_EmptyGroupsEvent.Reset();
 
 		if(dwRequestedUpdateRate != *pRevisedUpdateRate)
@@ -167,8 +168,8 @@ public:
 
 //		if( riid != IID_IOPCItemMgt ) return E_NOINTERFACE;
 
-	// KDB: 18.04.2006 LeakSPY передает *ppUnk = NULL, 
-	//  а с ним мы работать должны
+	// KDB: 18.04.2006 LeakSPY put *ppUnk = NULL, 
+	//  And with it we should work
 //		if( *ppUnk == NULL ) return E_INVALIDARG;
 
 		CGroupNameIndex::iterator it = m_GroupNameIndex.find( CString( szName ));
@@ -234,7 +235,7 @@ public:
 		m_GroupsIndex.erase( hServerGroup );
 		m_GroupNameIndex.erase( grpItem->m_Group->m_GroupName );
 
-// отписаться от событий группы 
+// detach from group events 
 //		pT->UnadviseAl( grpItem->m_Group->GetUnknown() );
 
 		grpItem->m_Group->Unsubscribe(/* &pT->m_DM  */);
@@ -243,14 +244,14 @@ public:
 		grpItem->m_Group->m_Deleted = true;
 		delete grpItem;
 
-		// сигнализируем что кончились все группы 
+		// sent event about ampty group list 
 		if( m_GroupsIndex.size() == 0 )
 			m_EmptyGroupsEvent.Set();
 
 		return hr;
 	}
 
-	/// TODO - не протестировано !
+	/// TODO - not nested !
 	STDMETHOD(CreateGroupEnumerator) ( 
 		/*[in]*/ OPCENUMSCOPE dwScope, 
 		/*[in]*/ REFIID riid, 

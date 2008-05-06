@@ -72,8 +72,8 @@ public:
 								pftTimeStamps,
 								pErrors );
 			} catch( ... ) {
-				// похоже что клиент дал ДУБА
-				// оставляем все как есть, но потом нужно чтото нужно делать
+				// client may be die
+				// leave as is, but will be something perform
 				hr = S_FALSE;
 			}
 		}
@@ -111,8 +111,8 @@ public:
 						hrMastererror, dwCount, phClientItems, pvValues,
 						pwQualities,pftTimeStamps, pErrors);
 			} catch( ... ) {
-				// похоже что клиент дал ДУБА
-				// оставляем все как есть, но потом нужно чтото нужно делать
+				// client may be die
+				// leave as is, but will be something perform
 				hr = S_FALSE;
 			}
 		}
@@ -144,8 +144,8 @@ public:
 				if (pConnection)
 					hr = pConnection->OnWriteComplete( dwTransid, hGroup, hrMasterError, dwCount, phClientItems, pError );
 			} catch( ... ) {
-				// похоже что клиент дал ДУБА
-				// оставляем все как есть, но потом нужно чтото нужно делать
+				// client may be die
+				// leave as is, but will be something perform
 				hr = S_FALSE;
 			}
 		}

@@ -49,7 +49,7 @@ public:
 		CLockRead locker2( pT->m_ItemsAdded );
 
 		for(DWORD i=0;i< dwCount;i++) {
-			/// если мы не подписаны на такой параметр
+			/// if not subscribed for this parametr 
 			if( ! pT->isAcceptedParam( phServer[i] ) ) {
 				(*ppItemValues)[i].wQuality = OPC_QUALITY_OUT_OF_SERVICE;
 				ret = S_FALSE;
@@ -59,7 +59,7 @@ public:
 
 			ItemInGroup *item = (*pT->m_ItemsAdded.find( phServer[i] )).second;
 
-			/// вычитываем последнее значение параметра
+			/// read last value of item 
 
 			if( item && pT->getLastValue( phServer[i], value ) ) {
 				(*ppItemValues)[i].hClient = item->hClient;
@@ -74,7 +74,8 @@ public:
 				ret = S_FALSE;
 				(*ppErrors)[i] = E_FAIL;
 			}
-			//// проверяем, принадлежит ли данный параметр нашей группе 
+
+			//// check, belong parametr to this group 
 			//ItemsInGroupMap::iterator it = pT->m_ItemsAdded.find( phServer[i] );
 			//if( it == pT->m_ItemsAdded.end()) {
 			//	(*ppItemValues)[i].wQuality = OPC_QUALITY_OUT_OF_SERVICE;
@@ -84,7 +85,7 @@ public:
 			//}
 
 
-			// проверяем есть ли такой параметр 
+			// check - parametr is exist ?
 			//CAG_Value *pAdapt = opcData::g_LastValues.get_pointer( phServer[i] );
 			//if( it == pT->m_ItemsAdded.end() || pAdapt == NULL) {
 			//	ppItemValues[i]->wQuality = OPC_QUALITY_OUT_OF_SERVICE;

@@ -126,7 +126,7 @@ public:
 				bool adding = false;
 				CString name = item.name;
 				
-				//TODO сделать отбор  параметров по типу 
+				//TODO need select parameters by type
 
 				if( item.dwAccessRights && (dwAccessRightsFilter & OPC_WRITEABLE) )
 					adding = true;

@@ -52,7 +52,7 @@ COPCServer::COPCServer()
 	m_pBrowserAdapter = &m_BrowserAdapter;
 	m_BrowserAdapter.m_server = this;
 
-	//// запуск процесса выкладывания в БД
+	//// run process putting in to database
 	//for(int i=0;i< GROUP_TABLE_COUNT ; ++i) {
 	//	m_DumpWriters[i] = new CDumpWriter( *this, m_DumpFileVector[i] );
 	//	m_DumpWriters[i]->SetExtention( group_name[i] );

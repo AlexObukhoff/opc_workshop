@@ -53,7 +53,7 @@ COPCBrowser::~COPCBrowser()
 
 void COPCBrowser::FinalRelease() 
 {
-	if(m_server) { // отпускаем сервер т.к. прибили объект броузер
+	if( m_server ) { // release server object 
 		m_server->Release();
 		m_server = NULL;
 	}
@@ -73,8 +73,10 @@ STDMETHODIMP COPCBrowserAdapter::QueryInterface(REFIID iid, void** ppv)
 		CComObject<COPCBrowser> *br = NULL;
 		CComObject<COPCBrowser>::CreateInstance( & br );
 		if( br ) {
+			// add ref to server object 
+			// ( otherwise if server destroyed without browser object - program crashed )
 			if(m_server)
-				m_server->AddRef(); // что бы наш сервер не уполз без браузера
+				m_server->AddRef(); 
 			br->m_server = m_server;
 			return br->QueryInterface( iid, ppv );
 		}

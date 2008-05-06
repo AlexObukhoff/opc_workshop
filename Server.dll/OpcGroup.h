@@ -31,7 +31,7 @@
 //#include "xl_events.h"
 //#include "_IGF_Events_CP.H"
 
-/// Описывает параметр находящийся в группе OPC сервера 
+/// Describe item in opc server group
 class ItemInGroup
 {
 public:
@@ -105,8 +105,6 @@ class ATL_NO_VTABLE COPCGroup :
 	public IOPCAsyncIO2Impl<COPCGroup>,
 	public opcData::COPCDataCustomer
 {
-	// флажок, указатель на который добавляем всем параметрам буффера 
-	// BOOL m_FlagChangedValues;
 public:
 	DWORD m_UpdateRate;
 	CString m_GroupName;
@@ -126,7 +124,7 @@ public:
 	// <server,client>
 	ItemsInGroupMap m_ItemsAdded;
 
-	// список параметров для которые необходимо прочитать асинхронно
+	// paramters list for async reading
 	CComAutoCriticalSection m_AsyncReadSect;
 	std::set<OPCHANDLE> m_AsyncRead;
 
@@ -147,7 +145,7 @@ public:
 		// m_FlagChangedValues = FALSE;
 		m_ParentServer = NULL;
 
-		// OPC группа не может принимать все параметры без подписки
+		// OPC group don't accept parameters without subscription
 		/*m_DataCustomer.*/SetAcceptAll( false ); 
 	}
 
@@ -179,7 +177,7 @@ public:
 	void FinalRelease();
 
 public:
-	/// сообщение от таймера при достижении времени, когда нужно отдавать данные
+	/// timer ivent -> now need call clients callbacks
     void OnTimer(/*DWORD dwTime*/)
 	{
 		sendChangedDataToClient();

@@ -43,11 +43,10 @@ public:
 	DWORD MaxIndex();
 	inline bool IsModified() { return m_modified; }
 
-	/// добавить пару, например из базы :D 
+	/// add pair (for example: from DB )
 	void addPair( DWORD id, LPCTSTR name );
 
-
-	/// операторы определения соответствия строки числу или числа строке 
+	/// acessors to index ( direct and reverse )
 	CString operator[] ( DWORD index );
 	DWORD operator[] ( LPCTSTR string );
 

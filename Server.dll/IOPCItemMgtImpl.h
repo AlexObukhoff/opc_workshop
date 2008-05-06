@@ -75,8 +75,7 @@ public:
 			ItemInGroup *newItem = NULL;
 			{
 				// CLockWrite locker( pT->m_ItemsAdded );
-				// если параметр уже подключен,то мы клиента отшиваем - 
-				// нефига несколько раз подключать параметр
+				// if parametr already connected, returning fail 
 				ItemsInGroupMap::iterator f = pT->m_ItemsAdded.find( hServer /*, pItem.hClient */);
 				if( f != pT->m_ItemsAdded.end() ) {
 					(*ppErrors)[i] = E_FAIL;
@@ -94,10 +93,10 @@ public:
 			pResult.dwBlobSize = 0;
 			pResult.pBlob = NULL;
 
-			/// передаем клиенту пустой параметр после того как он подписался на него
+			/// send to client empty value after adding
 			CAG_Value adapt ( pT->m_Manager->getLastValue( hServer ) );
 			if( adapt.isNull() ) { 
-				// если добавляем параметр на который не разу не приходили данные от источников
+				// if value ampty, set data type from CanonicalDataType
 				adapt.m_NameId = hServer;
 				adapt.m_Name = pItem.szItemID;
 				adapt.m_Type = pResult.vtCanonicalDataType;
@@ -108,11 +107,11 @@ public:
 			pT->pushData( &adapt, true );
 
 
-//			// добавить указатель на newItem->modified в список нотификаций нужного параметра сервера
+//			// add pointer to newItem->modified into tag notification list
 //			{
 //				CLockWrite locker( g_LastValues );
 //				CAG_Value &adapt = g_LastValues[ hServer ];
-////				newItem->modified = TRUE; // делаем, что бы сразу были посланы данные из буффера
+////				newItem->modified = TRUE; // mark item for immediately sending 
 //				adapt.m_ChangeMonitoring.insert( &(newItem->modified) );
 //				ATLASSERT( adapt.m_ChangeMonitoring.find( &(newItem->modified) ) != adapt.m_ChangeMonitoring.end() );
 //			}
@@ -197,7 +196,7 @@ public:
 			}
 			else {
 				//{
-				//	//отсоединить item->modified от списока нотификаций нужного параметра сервера
+				//	//detach item->modified from server tag notification list
 				//	CLockWrite locker( g_LastValues );
 				//	g_LastValues[ phServer[i] ].m_ChangeMonitoring.erase( &((*it).second->modified) );
 				//}

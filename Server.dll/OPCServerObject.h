@@ -29,8 +29,8 @@
 #include "opcda.h"
 
 /*!
-	Интерфейсный класс для работы с OPC сервером 
-	все функции возвращают 0 если нет ошибок
+	Interface class for working with OPC server 
+	all function returning 0 for success
 */
 class COPCServerObject
 {
@@ -60,9 +60,8 @@ public:
 	///   by default it is dot.
 	virtual void SetDelimeter( const char *ch ) = 0;
 
-	/// добавить тег в базу сервера
-	///		при этом указывается тип тега и возможность клиенту писать в этот параметр
-	///     Возвращаемое значение - внутренний хэндл или -1 в случае, если такой тэг уже существует
+	/// add tag to server database
+	///		return internal handle value or -1 if its parametr already exist 
 	virtual int AddTag( LPCTSTR name, VARTYPE type, bool readOnly = true) = 0;
 
 	/// Set parametr value
