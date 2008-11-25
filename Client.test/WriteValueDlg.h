@@ -23,7 +23,7 @@ public:
 	CString m_TagName;
 	CString m_TagValue;
 	OPCHANDLE  m_tag_client_id;
-	VARIANT  m_last_value; // Нужен как образец для определения требуемого типа данных
+	VARIANT  m_last_value; // Need as example for detecting data type
 
 	afx_msg void OnBnClickedWrite();
 };

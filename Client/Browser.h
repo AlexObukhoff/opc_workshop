@@ -5,7 +5,7 @@
 
 class OPCClient;
 
-///  ласс отвечающий за перечисление узлов в дереве 
+/// class for enumerating items in tags tree
 class BrowseItems
 {
 	std::string browsePosition;

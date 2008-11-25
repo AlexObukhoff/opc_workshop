@@ -96,7 +96,7 @@ public:
 
 	DWORD showMessageBoxByErrorInfo( )
 	{
-		return ::MessageBox(NULL, m_ErrMsg, _T("Ошибка COM объекта"), MB_OK | MB_ICONERROR );
+		return ::MessageBox(NULL, m_ErrMsg, _T("Error in COM object"), MB_OK | MB_ICONERROR );
 	}
 };
 
@@ -129,5 +129,5 @@ inline DWORD showMessageBoxByErrorInfo( IUnknown *obj )
 
 	inf->GetDescription(& msg);
 	
-	return ::MessageBox(NULL, CW2T( msg ), _T("Ошибка COM объекта"), MB_OK | MB_ICONERROR );
+	return ::MessageBox(NULL, CW2T( msg ), _T("Error in COM object"), MB_OK | MB_ICONERROR );
 }

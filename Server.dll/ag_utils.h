@@ -82,7 +82,10 @@ namespace Utils
 		}
 	};
 
-
+/*!
+	Function converting from UUID struct to string like this: 
+	"2498F284-5187-477e-A228-D00B948FAAC2"
+*/
 inline void UuidToString(const UUID &m_guid,CString &rString)
 {
 	rString.Format(_T("%08lX-%04X-%04x-%02X%02X-%02X%02X%02X%02X%02X%02X"),

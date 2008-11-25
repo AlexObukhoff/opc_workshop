@@ -129,7 +129,7 @@ public:
 	std::set<OPCHANDLE> m_AsyncRead;
 
 
-	// перенесено как наследование 
+	// moved as inheritance
 	//opcData::COPCDataCustomer m_DataCustomer;
 
 	COPCGroup() :

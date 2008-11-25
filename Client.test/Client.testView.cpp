@@ -108,7 +108,7 @@ void CClienttestView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHin
 	CListCtrl &tagList = GetListCtrl();
 
 	if (pDoc->m_TagList.size() == 0) {
-		// Это мог быть Disconnect
+		// It may be Disconnect
 
 		tagList.DeleteAllItems();
 		return;

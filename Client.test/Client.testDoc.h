@@ -5,9 +5,9 @@
 
 struct tagDsc
 {
-	CString tagName;				// Строка имени тэга
+	CString tagName;				// tag name string
 	OPCHANDLE client_handle;	// 
-	int itemNo;					//  Индекс тэга в списке тэгов в ListView
+	int itemNo;					//  tag index in ListView
 
 	FILETIME last_time;
 	VARIANT  last_value;
@@ -15,7 +15,7 @@ struct tagDsc
 
 	VARTYPE type;
 	int counter;
-	bool active; // флаг - принимает ли участие тэг в лоад-тестах
+	bool active; // flag - "use this tag for loading tests"
 
 	tagDsc() {
 		counter = 0;
@@ -49,8 +49,8 @@ protected: // create from serialization only
 // Attributes
 public:
 
-	// Теги, на которые мы уже подписались
-	// Слева - хэндл ОРС, справа - номер item в ListCtrl
+	// tag already subscribed
+	// key - ОРС handle , value - item index in ListCtrl
 	map<OPCHANDLE, int> tag_list_items;
 
 	tagDsc *selection;
@@ -75,7 +75,7 @@ public:
 	virtual BOOL OnNewDocument();
 	virtual void Serialize(CArchive& ar);
 	
-	// Устанавливаем выделение. Передаем номер итема в ListCtrl
+	// Selecting. Pass item index in ListCtrl
 	void SetSelection(int item_index);
 
 	// Thread finction for load test processing

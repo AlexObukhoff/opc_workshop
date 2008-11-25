@@ -12,11 +12,11 @@
 
 #define START_THREAD_TIMEOUT	1500
 
-// Класс, управляющий работой в потоке
+// Thread realisation class
 class COPCWorkerThread
 {
 protected:
-	// Подготовить данные до запуска потока
+	// for prepare data before start thread
 	virtual bool DoPreThreadTask() = 0;
 
 	// Подготовить данные в потоке после запуска, но до возврата из StartThread

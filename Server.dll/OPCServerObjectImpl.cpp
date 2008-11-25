@@ -167,7 +167,7 @@ void COPCServerObjectImpl::SetDelimeter( const char *ch )
 ///		return internal handle value or -1 if its parametr already exist 
 int COPCServerObjectImpl::AddTag( LPCTSTR name, VARTYPE type, bool readOnly)
 {
-	if( g_BrowseItems.find( name ) == g_BrowseItems.end() )  // проверка на существование тега
+	if( g_BrowseItems.find( name ) == g_BrowseItems.end() )  // check tag to be exist
 	{
 		DWORD new_index = g_NameIndex[ name ];
 

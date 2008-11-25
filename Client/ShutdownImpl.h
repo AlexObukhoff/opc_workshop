@@ -4,7 +4,7 @@
 #include "../include/opccomn.h"
 #include <string>
 /*
-*     Реализация интерфейса событий IOPCShutdown для OPC клиента 
+*     Implement IOPCShutdown interface for OPC client
 *
 */
 
@@ -66,7 +66,7 @@ public:
 	}
 
 ///  IUnknown implementation.
-	ULONG m_dwRef; /// внутренний счетчик ссылок	
+	ULONG m_dwRef; /// inner link counter
 	STDMETHOD(QueryInterface) (REFIID riid, void** ppv)
 	{
 		*ppv = NULL;
@@ -98,7 +98,7 @@ public:
 	}
 	IUnknown* GetUnknown()
 	{
-		 // может это и не правильно, но работает 
+		 // may be its not right think, but working :)
 		return dynamic_cast<IUnknown*> ( this );
 	}
 };

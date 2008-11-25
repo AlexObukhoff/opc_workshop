@@ -121,6 +121,10 @@ STDMETHODIMP myClassFactory::CreateInstance(LPUNKNOWN pUnkOuter, REFIID riid,
 
 static char VendorName[] = "Alexey Obukhov obukhoff@gmail.com";
 
+/*!
+	Function converting from UUID struct to string like this: 
+	"2498F284-5187-477e-A228-D00B948FAAC2"
+*/
 static void IIDtoStr (char str[40], const GUID* iid)
 {
 	sprintf (str, "{%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}",

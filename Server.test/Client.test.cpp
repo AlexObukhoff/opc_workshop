@@ -123,7 +123,7 @@ void client_open()
 	client.AddTag(ch++, "Values.fltArray2", VT_ARRAY|VT_R4 );
 	client.AddTag(ch++, "Values.fltArray2.In", VT_I4  );
 
-	/// попробуем добавить несуществующий параметр 
+	/// try to add does't existing tag
 	client.AddTag(ch++, "Values.fake.flt1", VT_R4 );
 
 	{

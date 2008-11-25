@@ -389,22 +389,22 @@ createGroup:
 				return E_FAIL; 
 			}
 
-			//if( m_OPCDataCallback == NULL ) {
-			//	m_OPCDataCallback = new COPCDataCallback;
-			//	m_OPCDataCallback->AddRef();
-			//	m_OPCDataCallback->receiver = m_DataReceiver;
-			//}
+			if( m_OPCDataCallback == NULL ) {
+				m_OPCDataCallback = new COPCDataCallback;
+				m_OPCDataCallback->AddRef();
+				m_OPCDataCallback->receiver = m_DataReceiver;
+			}
 
-			//hr = m_ConnectionPoint->Advise(m_OPCDataCallback, &m_Cookie);
-			//if( FAILED(hr) ) 
-			//{ 
-			//	delete m_OPCDataCallback;
-			//	m_OPCDataCallback = NULL;
+			hr = m_ConnectionPoint->Advise(m_OPCDataCallback, &m_Cookie);
+			if( FAILED(hr) ) 
+			{ 
+				delete m_OPCDataCallback;
+				m_OPCDataCallback = NULL;
 
-			//	_com_error err( hr );
-			//	m_DataReceiver->log_message( LogError, "1010: Advise к группе OPC сервера не прошел. (%s)", err.ErrorMessage() );  
-			//	return E_FAIL; 
-			//}
+				_com_error err( hr );
+				m_DataReceiver->log_message( LogError, "1010: Advise к группе OPC сервера не прошел. (%s)", err.ErrorMessage() );  
+				return E_FAIL; 
+			}
 		}
 
 		if( ItemsCount() > 1 )
@@ -535,7 +535,6 @@ bool OPCClient::ReadValue( DWORD clientID, FILETIME &time, VARIANT &value, WORD 
 	OPCHANDLE servH = getItemByClientHandle(clientID)->hServerHandle;
 
 	// проверка правильности записанного значения
-
 	HRESULT hr = SyncIO->Read( OPC_DS_CACHE, 1, &servH, &pItemState, &pErrors );
 	if( FAILED(hr) || ( pErrors != NULL && FAILED(*pErrors) ) || pItemState == NULL ) {
 		if( FAILED(*pErrors) ) 

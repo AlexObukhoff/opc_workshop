@@ -146,7 +146,7 @@ void CServerConnectDlg::OnBnClickedOk()
 	} else {
 		m_ServerList.GetWindowText(m_OPCServer);
 		if( m_OPCServer == "" ) {
-			AfxMessageBox("Выберите OPC Server");
+			AfxMessageBox("Select OPC Server");
 			return;
 		}
 	}

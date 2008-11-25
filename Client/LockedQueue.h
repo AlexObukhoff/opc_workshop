@@ -69,20 +69,20 @@ public:
 			SetEvent(wait_obj);
 		}
 
-		// Что делать - используем зависимость от глобальной конфигурации ARMImport
+		// not goog, but use dependence from global configuration ARMImport
 		if ( SyncMode ) 
 		{
 			DWORD ret = WaitForSingleObject(wait_result, QUEUE_RESULT_TIMEOUT);
 
 			switch (ret) {
 				case WAIT_OBJECT_0:
-					// Дождались, все в порядке
+					// all ok
 					break;
 				case WAIT_TIMEOUT:
 					opcError( "CWorkerThread:: Result Event timeout ... ");
 					break;
 				default:
-					opcError( "Проблема выполнения команды: %d - %d", ret, GetLastError() );
+					opcError( "Error running command: %d - %d", ret, GetLastError() );
 					break;
 			}
 		}
@@ -101,17 +101,17 @@ public:
 			m_queue.pop_front();
 			return ret_val;
 		} else {
-			// KDB 30.12.2005: это нормальная практика, когда мы в цикле пытаемся извлекать и обрабатывать 
-			//  значения как атомарная операция, без промежуточного снятия блокировки.  
-			//  Правда работать оно будет только с  указателями
+			// KDB 30.12.2005: its a normal practic, in loop extraction and process data as 
+			//  aomic operation, with out intermediate removal blocking.
+			//  But this code only working with pointer data types
 			/*
-				Например, при T=CDataBlock *
+				For example if T=CDataBlock *
 				
 				CDataBlock *b = NULL;
 				while (b = queue.pop()) {
 					... 
 				}
-				// Очередь полностью опустошена, можно работать дальше
+				// Queue clean, working next
 			*/
 			return T(NULL);
 //			throw opcError( "CLockedQueue - not possible pop from empty queue" );

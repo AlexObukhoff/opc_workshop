@@ -151,7 +151,7 @@ public:
 			for(CBrowseItemsList::iterator it = g_BrowseItems.begin(); it != g_BrowseItems.end(); ++it) {
 				CItemForBrowse item( *it );
 				
-				// если одинаковое начало
+				// if same beginning 
 				if( m_BrowsePosition.GetLength() ) {
 					if( item.name.Left( m_BrowsePosition.GetLength() ) == m_BrowsePosition ) 
 					{

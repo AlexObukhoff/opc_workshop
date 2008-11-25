@@ -211,7 +211,7 @@ void CTagBrowserDlg::OnBnClickedOk()
 	treeItem *item = (treeItem *)m_TagTree.GetItemData(selected);
 
 	if (item != NULL && item->has_children) {
-		// Много итемов
+		// Much items
 
 		BrowseItems *br = new BrowseItems( &m_opc_client, (LPCSTR)m_TagName );
 

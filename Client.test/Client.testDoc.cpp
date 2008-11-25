@@ -105,13 +105,13 @@ void WriteThread(void *arg)
 				WORD ret_quality;
 
 				if (! m_OPCClient.ReadValue(tag.client_handle, ret_time, ret_value, ret_quality)) {
-					// Прочиталось оно с ошибкой
+					// reading error ;(
 
 					AfxMessageBox("Coudn't read value from server", MB_OK | MB_ICONSTOP);
 					return;
 				}
 
-				// А сравним-ка мы его
+				// compare return value 
 				HRESULT hcmp = VarCmp(&ret, &ret_value, 0);
 				if (hcmp != VARCMP_EQ) {
 					CString msg; msg.Format("Tag %s Values are not equal !!! continue ?",
@@ -121,7 +121,7 @@ void WriteThread(void *arg)
 						MB_YESNO | MB_ICONSTOP);
 
 					if (res == IDYES) {
-						// Удалим тэг из списка и продолжим
+						// remove tag from list 
 
 						it->active = false;
 					} else {
@@ -322,7 +322,7 @@ void CClienttestDoc::OnRefreshValue()
 void CClienttestDoc::OnWriteValue()
 {
 #if 0
-	// KDB: начинаем массированную запись по всем тэгам, чтобы проверить надежность
+	// KDB: start massive writing to all tag's - load test 
 
 	try
 	{
@@ -337,7 +337,7 @@ void CClienttestDoc::OnWriteValue()
 
 	// Get selected item and it's properties
 	if (selection == NULL) {
-		AfxMessageBox("Не выбран тэг для записи значения");
+		AfxMessageBox("Not selected tag for write value!");
 		return;
 	}
 
@@ -497,13 +497,13 @@ void CClienttestDoc::DoLoadTest()
 				WORD ret_quality;
 
 				if (! m_OPCClient.ReadValue(tag.client_handle, ret_time, ret_value, ret_quality)) {
-					// Прочиталось оно с ошибкой
+					// error readed
 
 					AfxMessageBox("Coudn't read value from server", MB_OK | MB_ICONSTOP);
 					return;
 				}
 
-				// А сравним-ка мы его
+				// compare return value 
 				HRESULT hcmp = VarCmp(&ret, &ret_value, 0);
 				if (hcmp != VARCMP_EQ) {
 					CString msg; msg.Format("Tag %s Values are not equal !!! continue ?",
@@ -513,7 +513,7 @@ void CClienttestDoc::DoLoadTest()
 						MB_YESNO | MB_ICONSTOP);
 
 					if (res == IDYES) {
-						// Удалим тэг из списка и продолжим
+						// remove tag from list
 
 						it->active = false;
 					} else {
@@ -601,7 +601,7 @@ void CClienttestDoc::newData(LPCTSTR name, DWORD clientID, FILETIME &time, VARIA
 {
 	map<OPCHANDLE, int>::iterator f = tag_list_items.find(clientID);
 	if (f == tag_list_items.end()) {
-		// Не наш клиент - видимо из дерева пришел
+		// not my client
 		return;
 	}
 
@@ -638,7 +638,7 @@ int CClienttestDoc::AddTag(CString & tagName)
 
 	int itemno = count;
 
-	// Добавим подписку на этот тэг
+	// Subscribe for tag
 	// Read tag value, to do it add item to client object at first
 	static OPCHANDLE client_hdl = 200000;
 
@@ -652,7 +652,7 @@ int CClienttestDoc::AddTag(CString & tagName)
 
 	m_TagList.push_back(tag_descriptor);
 
-	// Читаем начальное значение
+	// Read initial value
 	FILETIME time;
 	VARIANT value; VariantInit(&value);
 	WORD	quality;
@@ -684,15 +684,15 @@ int CClienttestDoc::ConnectAndCreateGroup(CString &ServerName, CString &host, CS
 
 	if( FAILED( hr ) ) {
 		CString msg;
-		msg.Format("Ошибка соединения с ОРС сервером: %s", m_LastMessage.c_str());
+		msg.Format("Error connecting to ОРС server: %s", m_LastMessage.c_str());
 		AfxMessageBox(msg, MB_ICONSTOP | MB_OK);
 
-		// Попробуем не учитывать наличие IOPCShutdown на сервере
+		// Try not factor existing IOPCShutdown on server
 
 		m_OPCClient.SetFlags (m_OPCClient.GetFlags () | OPC_CLIENT_IGNORE_SHUTDOWN);
 
 		hr = m_OPCClient.Connect( ServerName, NULL );
-		msg.Format("Ошибка соединения с ОРС сервером: %s (проверка IOPCShutdown отключена)", 
+		msg.Format("Error connecting to ОРС server: %s (IOPCShutdown checking disabled)", 
 			m_LastMessage.c_str());
 
 		AfxMessageBox(msg, MB_ICONSTOP | MB_OK);		

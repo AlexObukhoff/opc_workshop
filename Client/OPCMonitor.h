@@ -98,7 +98,7 @@ protected:
 
 	int ConnectAndCreateGroup(CString &ServerName, CString &GroupName);
 
-	/// сигнал для отсоединения от сервера
+	/// signal for disconnecting from server
 	ATL::CEvent m_hShutdownEvent;
 
 	bool DoPostThreadTask();
@@ -144,10 +144,10 @@ public:
 	bool IsExist(int itemid);
 	bool IsConnected();
 
-	// "Примерить" параметр
-	// Если ничего не изменилось - ничего не делать
-	// Если такого нет (по m_ParamId) - внести
-	// Если есть, но с другим именем - удалить старый, внести новый
+	// "Apply" paramatr
+	// If not changed - do nothing
+	// If not exits (not find m_ParamId) - adding
+	// if exist, but name not equal - remove old and adding new parametr
 	void ApplyParameter(LONG ParamId, const char *ParamName, bool UseOpcTag, const char *OpcTagId);
 
 	void LockOPC(void) {
@@ -173,15 +173,15 @@ public:
 	virtual std::string DumpStatus();
 
 	/*!
-	   Заносит значение параметра в очередь данных, для записи в ОРС сервер
-	   Возвращает true если все успешно.
-	   Возможно исключение opcError 
+	   Add tag value to data queue, for writing to ОРС server
+	   Returning true if all OK
+	   Can throw opcError exception
 	*/
 	bool WriteToOPCQueue( LONG ParamId, double val, FILETIME ft = FILETIME_NULL, DWORD opc_quality = OPC_QUALITY_GOOD);
 	bool WriteToOPCQueue( LONG ParamId, int val, FILETIME ft = FILETIME_NULL, DWORD opc_quality = OPC_QUALITY_GOOD );
 	/*!
-		Записывает всю очередь данных, одним вызовом в ОРС сервер
-		возвращает количество параметров, фактически записанных в сервер без ошибок 
+		Write all data queue to server by one server call
+		return count tags, writed with out error
 	*/
 	int FlushOPCQueue();
 private:
@@ -192,7 +192,7 @@ public:
 	CString m_ServerHost;
 	DWORD m_ConnectionRefreshRate;
 	BOOL m_UseSystemTimestamp;
-	BOOL m_UseSync;  // вместо ARMImportConfig::instance.SyncMode()
+	BOOL m_UseSync;  // instead of ARMImportConfig::instance.SyncMode()
 
 private:
 	std::vector<OPCEventConsumer*> consumers;

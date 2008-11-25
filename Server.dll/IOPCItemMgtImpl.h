@@ -84,7 +84,7 @@ public:
 				newItem = new ItemInGroup( pItem.hClient, pItem.bActive );
 				pT->m_ItemsAdded.insert( hServer, newItem );
 				AtlTrace("Item Inserted. name=%s, hClient=%d\n", pItem.szItemID, pItem.hClient);
-				/// указываем кастомеру на получение данных /*m_DataCustomer.*/
+				/// We specify to the subscriber to data acquisition /*m_DataCustomer.*/
 				pT->AcceptParam( hServer );
 			}
 			pResult.hServer = hServer;

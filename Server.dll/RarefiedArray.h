@@ -54,7 +54,7 @@ public:
 		//while( index >= m_vector.size() )
 		//	m_vector[index] = .insert( std::[pair NULL );
 		TArray::iterator it = m_vector.find( index );
-		if( it == m_vector.end() ) { // добавляем новый 
+		if( it == m_vector.end() ) { // adding new item 
 			val = new T();
 			m_vector.insert( pair( index, val ) );
 		}

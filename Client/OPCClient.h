@@ -11,31 +11,30 @@
 #include <AtlSync.h>
 #include <string>
 
-// Флаги, определяющие поведение клиента. 
-//  OPC_CLIENT_IGNORE_SHUTDOWN	- разрешить подключение к серверу, у которого 
-//   отсутствует интерфейс IOPCShutdown
+// Falgs, defining client behaviour
+//  OPC_CLIENT_IGNORE_SHUTDOWN	- allow connection to server with out IOPCShutdown interface supporting
 #define OPC_CLIENT_IGNORE_SHUTDOWN	0x00000001  
 
 class OPCClient : protected AG_OpcDA::COpcDaAbstractor
 {
 protected:
-	/// подписчик на сигнал отсоединения от сервера 
+	/// subscriber for IOPCShutdown interface
 	COPCShutdownImpl m_Shutdowner;
-	/// сигнал для отсоединения от сервера
+	/// event for disconnecting from server
 	ATL::CEvent m_hShutdownEvent;
 
-	/// ссылка на подписчика данных 
+	/// data subscriber link
 	COPCReceiveData *m_DataReceiver; 
-	/// флаг - локально создавать объект сервера, или удаленно 
+	/// flag - local or remote server creation method
 	bool						m_Local;
-	/// хендл ОРС группы
+	/// ОРС handle of group
     OPCHANDLE					m_GroupHandle;
 
-	/// куки асинхронных колбаков 
+	/// coocies of async callbacks
 	DWORD						m_Cookie;
-	/// объект реализующий IOPCDataCallback
+	/// IOPCDataCallback implementation object 
 	COPCDataCallback*			m_OPCDataCallback;
-	/// точка подъсоединения к событиям 
+	/// connection point for events
 	CComPtr<IConnectionPoint>	m_ConnectionPoint;
 
 	DWORD m_flags;
@@ -59,26 +58,26 @@ public:
 	}
 public:
 	
-	/// Св-ва клиента для подъсоединения к серверу 
+	/// Client properties for connection to server
 	std::string m_Host,m_ProgID,m_GroupName;
 
-	/// период обновления информации по асинхронному интерфейсу
+	/// async interface updating timeout
 	DWORD m_UpdateRate;
 
-	/// определяет метод записиданных в ОРС сервер 
-	/// true - использовать асинхронный интерфейс 
+	/// describe method for writing data to OPC server
+	/// true - use async interface
 	bool m_UseAsync;
 
-	/*! метод добавления параметров в группу 
-		 true - подключение блоком 
-		 false - подключение по одному параметру
+	/*! method addition tags to group
+		 true - adding by block 
+		 false - adding each tag individually
 	*/
 	bool m_AddItemMode; 
 
 private:
-	/// объект сервера 
+	/// server object
 	CComPtr<IOPCServer>			m_Server;	
-	/// одна группа на весь сервер 
+	/// on group for server
 	CComPtr<IOPCGroupStateMgt>  m_Group;	
 public:
 
@@ -86,22 +85,23 @@ public:
 	/// if host == NULL, using m_Host member 
 	virtual HRESULT Connect( LPCTSTR name, LPCTSTR host = NULL );
 
-	/// отсоединение от сервера 
+	/// disconnect from server
 	virtual void Disconnect();
 
 	bool isConnected();
 
-	/// получить статус сервера 
+	/// get server status
 	HRESULT getServerState( OPCSERVERSTATE &state );
 
-	/*! добавляет в группу параметр, если клиент не подключен, то добавляет параметр в сиписок на подключение
-		возвращает клиентский хендл, или 0 в случае неудачи 
+	/*! append tag to group, 
+		if client not connected, adding tag to list "to connect" and return client handle, 
+		or NULL if error
 
-		@param clientHandle - пользовательский хендл параметра, не может быть равен 0 
+		@param clientHandle - user handle of tag, must be not zero 
 	*/
 	OPCHANDLE AddTag( OPCHANDLE clientHandle, LPCTSTR tag_name, VARTYPE type );
 	
-	/// удалить из группы указанный параметр
+	/// remove and unsubscribe tag
 	void RemoveTag( OPCHANDLE clientHandle ); 
 
 	bool WriteValue( DWORD clientID, FILETIME &time, VARIANT &value, WORD Quality );
@@ -109,7 +109,7 @@ public:
 	
 	bool WriteValues(int nValues, DWORD clientIDs[], VARIANT values[]);
 
-	/// чтение значения параметра 
+	/// read value from server
 	bool ReadValue( DWORD clientID, FILETIME &time, VARIANT &value, WORD &Quality );
 
 private:
@@ -123,17 +123,17 @@ private:
 
 	void ReportError( HRESULT hr ,LPCTSTR name);
 
-	/// записать значение параметра в сервер ASYNC 
+	/// write value to server ASYNC 
 	HRESULT PutValueToOPC_Async( AG_OpcDA::Item * item );
-	/// записать значение параметра в сервер SYNC 
+	/// write value to server SYNC 
 	HRESULT PutValueToOPC_Sync( AG_OpcDA::Item * item );
 
 
 	HRESULT OPCClient::PutValuesToOPC_Sync( int nValues, 
-		CString names[], // для диагностики
+		CString names[], // for diagnostic
 		DWORD serverHdls[], 
 		VARIANT values[] );
-/// для OPCMonitor 
+/// for OPCMonitor 
 public:
 	IOPCServer *GetServer()  {
 		return m_Server;
@@ -143,7 +143,7 @@ public:
 		return m_Group;
 	}
 	
-	/// обновить все параметры 
+	/// reload all tags
 	void Refresh();
 
 	const char *GetLastMessage();
