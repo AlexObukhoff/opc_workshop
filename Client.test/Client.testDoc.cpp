@@ -586,7 +586,7 @@ void CClienttestDoc::log_message( LogLevel llevel, const char* fmt, ... )
 
 	va_list args;
 	va_start(args, fmt);
-		_vsnprintf(str, 4000, fmt, args);
+	_vsnprintf(str, 4096, fmt, args);
 	va_end(args);
 
 	m_LastMessage += str;

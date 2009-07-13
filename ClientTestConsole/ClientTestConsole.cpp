@@ -30,8 +30,7 @@ public:
 		static char buffer[4096];
 		va_list args;
 		va_start(args, fmt);
-		vsprintf (buffer, fmt, args);
-		//vprintf (fmt, args);
+		_vsnprintf (buffer, 4096, fmt, args);
 		va_end(args);
 
 		CString str = buffer;

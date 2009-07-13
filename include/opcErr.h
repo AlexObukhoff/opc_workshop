@@ -52,7 +52,7 @@ public:
 
 		va_list args;
 		va_start(args, fmt);
-			vsprintf (buffer, fmt, args);
+		_vsnprintf (buffer, 2048, fmt, args);
 		va_end(args);
 
 		message = buffer;
