@@ -240,7 +240,7 @@ bool OPCClient::isConnected()
 HRESULT OPCClient::Connect( LPCTSTR name, LPCTSTR host )
 {
 	HRESULT hr = S_OK;
-	/// количество тегов реально добавленных в группу клиента 
+	// the number of tags actually added to the client group
 	DWORD ItemsAdded = 0;
 
 	if( name != NULL )
@@ -254,7 +254,7 @@ HRESULT OPCClient::Connect( LPCTSTR name, LPCTSTR host )
 		return E_FAIL;
 
 	if( isConnected() ) {
-		m_DataReceiver->log_message( LogError, "Повторная попытка соединения: клиент уже подсоединен" );
+		m_DataReceiver->log_message( LogError, "Repeated attempts to connect: the client is already connected" );
 		return E_FAIL;
 	}
 
@@ -262,23 +262,23 @@ HRESULT OPCClient::Connect( LPCTSTR name, LPCTSTR host )
 
 		if( m_Server == NULL )   {
 			if( m_Local ) 
-			{				 // создаем локально
+			{	// create locally
 				hr = m_Server.CoCreateInstance( CT2W( m_ProgID.c_str() ) );
 
 				if( m_Server == NULL || FAILED(hr) ) {
 					_com_error err( hr);
-					m_DataReceiver->log_message( LogError, "Ошибка создания объекта %s на машине %s. (%s)", 
+					m_DataReceiver->log_message( LogError, "Error occured while creating object %s on machine %s. (%s)", 
 						m_ProgID.c_str(), m_Host.c_str(), err.ErrorMessage() );
 					return E_FAIL;
 				}
 			}
-			else { // создаем удаленно
+			else {	// create remotely
 
 				if( m_Host == "DCOM" ) {
 					hr = m_Server.CoCreateInstance( CT2W(m_ProgID.c_str()),NULL, CLSCTX_REMOTE_SERVER );
 					if( FAILED(hr) ) {
 						_com_error err( hr);
-						m_DataReceiver->log_message( LogError, "Ошибка создания объекта %s на машине %s. (%s)", 
+						m_DataReceiver->log_message( LogError, "Error occured while creating object %s on machine %s. (%s)", 
 							m_ProgID.c_str(), m_Host.c_str(), err.ErrorMessage() );
 						return E_FAIL;
 					}
@@ -287,7 +287,7 @@ HRESULT OPCClient::Connect( LPCTSTR name, LPCTSTR host )
 					CLSID clsid = CLSID_NULL;
 					hr = CLSIDFromProgID( CT2W(m_ProgID.c_str()), &clsid );
 					if( FAILED(hr) || clsid == CLSID_NULL) {
-						m_DataReceiver->log_message( LogError, "Не удалось получить CLSID из ProgID (%s)", m_ProgID.c_str() );
+						m_DataReceiver->log_message( LogError, "Unable to get CLSID from ProgID (%s)", m_ProgID.c_str() );
 						return E_FAIL;
 					}
 
@@ -304,7 +304,7 @@ HRESULT OPCClient::Connect( LPCTSTR name, LPCTSTR host )
 
 					if( FAILED(hr) || FAILED(mqi[0].hr) ) {
 						hr = FAILED(hr) ? hr : mqi[0].hr;
-						m_DataReceiver->log_message( LogError, "Ошибка создания объекта %s на машине %s. (%s)", 
+						m_DataReceiver->log_message( LogError, "Error occured while creating object %s on machine %s. (%s)", 
 							m_ProgID.c_str(), m_Host.c_str(), _com_error(hr).ErrorMessage());
 						return E_FAIL;
 					}
@@ -315,7 +315,7 @@ HRESULT OPCClient::Connect( LPCTSTR name, LPCTSTR host )
 			hr = m_Shutdowner.Advise( m_Server );
 			if( FAILED(hr) ) {
 
-				m_DataReceiver->log_message( LogError, "Ошибка подписки на IOPCShutdown. (%s)", _com_error(hr).ErrorMessage() ); 
+				m_DataReceiver->log_message( LogError, "Error subscribing to IOPCShutdown. (%s)", _com_error(hr).ErrorMessage() ); 
 
 				if (! (m_flags & OPC_CLIENT_IGNORE_SHUTDOWN)) {
 					return E_FAIL;
@@ -323,7 +323,7 @@ HRESULT OPCClient::Connect( LPCTSTR name, LPCTSTR host )
 			}
 		}
 
-		/// дожидаемся когда сервер придет в рабочее состояние 
+		/// wait for the server to enter working condition 
 		CAG_Clocker clocker( NULL, false );
 		int index = 0;
 		OPCSERVERSTATE state = OPC_STATUS_TEST;
@@ -337,11 +337,11 @@ HRESULT OPCClient::Connect( LPCTSTR name, LPCTSTR host )
 			if( FAILED(hr) ) return hr;
 		} 
 		if( state != OPC_STATUS_RUNNING ) {
-			m_DataReceiver->log_message( LogWarning, "В течении %.2f секунд сервер не перешел в режим OPC_STATUS_RUNNING.", clocker.stop() );
+			m_DataReceiver->log_message( LogWarning, "Server not in OPC_STATUS_RUNNING condition within %.2f seconds.", clocker.stop() );
 			return E_FAIL;
 		}
 
-		// создаем группу на сервере
+		// create a group on the server
 		if( m_Group == NULL )  
 		{
 			long time_bias = 0;
@@ -358,34 +358,34 @@ createGroup:
 					ss << m_GroupName << "_" << rand();
 					m_GroupName = ss.str(); 
 				}
-				m_DataReceiver->log_message( LogError, "На OPC сервере уже существует группа с именем %s. Возможна ошибка конфигурации.", m_GroupName.c_str() );
+				m_DataReceiver->log_message( LogError, "The OPC server already has a group named %s. Possible configuration error.", m_GroupName.c_str() );
 				goto createGroup;
 				//				return E_FAIL;
 			case E_NOINTERFACE:
-				m_DataReceiver->log_message( LogError, "IOPCServer::AddGroup return E_NOINTERFACE (IID_IOPCGroupStateMgt)" );
+				m_DataReceiver->log_message( LogError, "IOPCServer::AddGroup returned E_NOINTERFACE (IID_IOPCGroupStateMgt)" );
 				return E_FAIL;
 			}	
 
 			if( FAILED(hr) || m_Group == NULL) {
-				m_DataReceiver->log_message( LogError, "1003: Не удалось создать группу на сервере", m_GroupName.c_str() );
+				m_DataReceiver->log_message( LogError, "1003: Unable to create a group on the server", m_GroupName.c_str() );
 				return E_FAIL;
 			}
 			if( update_rate != m_UpdateRate )
-				m_DataReceiver->log_message( LogWarning, "1004: OPC сервер отверг предложенный период обновления данных. Новый период: %d ms.", update_rate );
+				m_DataReceiver->log_message( LogWarning, "1004: OPC server rejected data refresh interval. Setting it to %d ms.", update_rate );
 
-			// Подсоединяемся к событиям группы 
+			// Connect to the events callback 
 			CComPtr<IConnectionPointContainer> cpoint;
 			hr = m_Group->QueryInterface( &cpoint );
 			if( FAILED(hr) || cpoint == NULL) { 
 				_com_error err( hr );
-				m_DataReceiver->log_message( LogError, "1008: Не удалось получить от объекта OPC группы интерфейс IConnectionPointContainer (%s).", err.ErrorMessage() ); 
+				m_DataReceiver->log_message( LogError, "1008: Unable to receive from the OPC Group object interface IConnectionPointContainer (%s).", err.ErrorMessage() ); 
 				return E_FAIL; 
 			}
 
 			hr = cpoint->FindConnectionPoint( IID_IOPCDataCallback, &m_ConnectionPoint );
 			if( FAILED(hr) || m_ConnectionPoint == NULL) { 
 				_com_error err( hr );
-				m_DataReceiver->log_message( LogError, "1009: У группы OPC отсутствует IOPCDataCallback. Возможно OPC сервер не соответствует стандарту OPC DA 2.0 (%s).", err.ErrorMessage() ); 
+				m_DataReceiver->log_message( LogError, "1009: A group of OPC with no IOPCDataCallback. OPC server appears to not conform to the OPC DA 2.0 standard (%s).", err.ErrorMessage() ); 
 				return E_FAIL; 
 			}
 
@@ -402,7 +402,7 @@ createGroup:
 				m_OPCDataCallback = NULL;
 
 				_com_error err( hr );
-				m_DataReceiver->log_message( LogError, "1010: Advise к группе OPC сервера не прошел. (%s)", err.ErrorMessage() );  
+				m_DataReceiver->log_message( LogError, "1010: Advise failed on OPC server group (%s)", err.ErrorMessage() );  
 				return E_FAIL; 
 			}
 		}
@@ -425,7 +425,7 @@ createGroup:
 		return E_FAIL;
 	}
 
-	m_DataReceiver->log_message( LogDebugInfo, "1020: Добавлено в группу сервера %d из %d параметров.", ItemsAdded, ItemsCount() );
+	m_DataReceiver->log_message( LogDebugInfo, "1020: Added to the group server %d of %d parameters.", ItemsAdded, ItemsCount() );
 
 	if( SUCCEEDED(hr) )
 		m_DataReceiver->StatusChanged( 1, NULL );
@@ -438,14 +438,14 @@ void OPCClient::Disconnect()
 	if( !isConnected() ) {
 
 		if (m_DataReceiver != NULL ) {
-			m_DataReceiver->log_message( LogError, "Попытка повторного отсоединения." );
+			m_DataReceiver->log_message( LogError, "Attempt to re-disconnect." );
 		}
 		return;
 	}
 
 	m_Shutdowner.Unadvise();
 
-	/// подчистка всех объектов
+	/// erase all objects
 	if( m_ConnectionPoint ) {
 		try {
 			m_ConnectionPoint->Unadvise(m_Cookie);
@@ -485,8 +485,9 @@ void OPCClient::Disconnect()
 	}
 }
 
-/*! добавляет в группу параметр, если клиент не подключен, то добавляет параметр в сиписок на подключение
-возвращает клиентский хендл 
+/*
+adds to the group setting, if the client is not connected, it adds value to the list of connection
+returns client handle
 */
 OPCHANDLE OPCClient::AddTag( OPCHANDLE clientHandle, LPCTSTR tag_name, VARTYPE type )
 {
@@ -500,48 +501,69 @@ OPCHANDLE OPCClient::AddTag( OPCHANDLE clientHandle, LPCTSTR tag_name, VARTYPE t
 
 	OPCHANDLE clientID = (OPCHANDLE)addNewItem( it );
 
-	/// если подсоединены к серверу - добавляем тег на ходу 
+	/// When you connect to the server - add the tag on the fly 
 	if( isConnected() ) {
 		HRESULT hr = AddParamToGroup( it );
 
 		if (FAILED (hr) ) {
-			throw opcError ("Can't add parameter %s to group", tag_name);
+			throw opcError ("Cannot add parameter %s to the group", tag_name);
 		}
 	}
 
 	return clientID;
 }
 
-	/// удалить из группы указанный параметр
+/// Remove this parameter from the group. XXX: TODO: Not implemented.
 void OPCClient::RemoveTag( OPCHANDLE /*clientHandle */)
 {
-	
+	//XXX TODO: please, finish me!
 }
 
-
-/// чтение значения параметра 
+/// Read Value Synchronously
 bool OPCClient::ReadValue( DWORD clientID, FILETIME &time, VARIANT &value, WORD &Quality )
 {
+	bool failedFlag = FALSE;
 	CComPtr<IOPCSyncIO> SyncIO;
 	if( m_Group == NULL ) return false;
 
 	m_Group.QueryInterface( &SyncIO );
 	if( SyncIO == NULL ) return false;
 
-
 	HRESULT      *pErrors    = NULL;
 	OPCITEMSTATE* pItemState = NULL;
 
 	OPCHANDLE servH = getItemByClientHandle(clientID)->hServerHandle;
 
-	// проверка правильности записанного значения
+	// Test correctness of the value
 	HRESULT hr = SyncIO->Read( OPC_DS_CACHE, 1, &servH, &pItemState, &pErrors );
-	if( FAILED(hr) || ( pErrors != NULL && FAILED(*pErrors) ) || pItemState == NULL ) {
-		if( FAILED(*pErrors) ) 
-			ReportError( *pErrors, "OPCClient::ReadValue" );
 
-		if( pErrors )
+	if( FAILED(hr) )
+	{
+		failedFlag = TRUE;
+	}
+	else if( pErrors )
+	{
+		if( FAILED(*pErrors) )
+		{
+			failedFlag = TRUE;
+		}
+	}
+	else if ( pItemState == NULL )
+	{
+		failedFlag = TRUE;
+	}
+
+	///////////////////////////////////////////////////////////////
+	if( failedFlag )
+	{
+		if (pErrors)
+		{
+			if( FAILED(*pErrors) ) 
+			{
+				ReportError( *pErrors, "OPCClient::ReadValue" );
+			}
 			CoTaskMemFree( pErrors );
+		}
 
 		if( pItemState )
 			CoTaskMemFree( pItemState );
@@ -645,7 +667,7 @@ HRESULT OPCClient::AddParamToGroup( AG_OpcDA::Item* item/*, OPCHANDLE clientID*/
 	OPCITEMDEF idef;
 
 	fillOPCITEMDEF( item, &idef );
-	/// заполняем клиентский хендл в структуру 
+	/// fill handle in the client structure 
 	//	idef.hClient = clientID;
 
 	if( m_itemMgt == NULL && m_Group == NULL) return E_FAIL;
@@ -660,7 +682,7 @@ HRESULT OPCClient::AddParamToGroup( AG_OpcDA::Item* item/*, OPCHANDLE clientID*/
 	clearOPCITEMDEF( &idef );
 
 	if( FAILED( hr )) {
-		m_DataReceiver->log_message( LogError, "Ошибка подключения параметра %s.", (LPCTSTR) item->name );
+		m_DataReceiver->log_message( LogError, "Connection error. Parameter: %s.", (LPCTSTR) item->name );
 		//		freeItem( item_index );
 		item->hServerHandle = 0;
 		return E_FAIL;
@@ -725,7 +747,7 @@ HRESULT OPCClient::AddParamsTogetherToGroup( IOPCItemMgt *itemMgt, DWORD &m_Item
 		hr = itemMgt->AddItems( ItemsCount(), idef, &pResults, &pErrors);
 
 		if( FAILED( hr )) {
-			m_DataReceiver->log_message( LogError, "Ошибка подключения группы параметров. Возможно OPC сервер не поддерживает такой режим." );
+			m_DataReceiver->log_message( LogError, "Error adding list of items to OPC group. Maybe the OPC server does not support this operation." );
 			ReportError( hr, NULL ); //ReportAddingError
 		}
 
@@ -802,23 +824,23 @@ HRESULT OPCClient::AddParamsToGroup( DWORD &m_ItemsAdded )
 	m_ItemsAdded = 0;
 
 	try {
-		/// подписываемся на параметры от OPC сервера
+		/// subscribe to the parameters of the OPC Server
 		if( m_itemMgt == NULL ) {
 			hr = m_Group->QueryInterface( & m_itemMgt );
 			if( FAILED(hr) || m_itemMgt == NULL) { 
 				_com_error err( hr );
-				m_DataReceiver->log_message( LogError, "Не удалось получить интерфейс IOPCItemMgt. (%s)", err.ErrorMessage() );  
+				m_DataReceiver->log_message( LogError, "Failed to get interface IOPCItemMgt. (%s)", err.ErrorMessage() );  
 				return hr; 
 			}
 		}
 
 		if( ItemsCount() <= 1 )
 		{
-			m_DataReceiver->log_message( LogError, _T("Подключение к ОРС серверу [%s] прошло, но список подключаемых параметров пуст."), m_ProgID.c_str() );
+			m_DataReceiver->log_message( LogError, _T("Connection to the OPC server [%s] passed, but the list of mapped parameters is empty."), m_ProgID.c_str() );
 			return S_OK;
 		}
 
-		if( m_AddItemMode ) { // 1- подключение блоком
+		if( m_AddItemMode ) { // 1- Connection block
 			hr = AddParamsTogetherToGroup( m_itemMgt, m_ItemsAdded );
 			Refresh();
 			return hr;
@@ -923,7 +945,12 @@ bool OPCClient::WriteValues(int nValues, DWORD clientIDs[], VARIANT values[])
 		{
 			AG_OpcDA::Item * item = getItemByClientHandle( clientIDs[i] );
 			if( item == NULL )
+			{
+				delete [] serverHdls;
+				delete [] names;
+
 				return false;
+			}
 
 			serverHdls[i] = item->hServerHandle;
 			names[i] = item->name;
@@ -938,7 +965,7 @@ bool OPCClient::WriteValues(int nValues, DWORD clientIDs[], VARIANT values[])
 	}
 }
 
-/// записать значение параметра в сервер ASYNC 
+/// write down the value of the server ASYNC 
 HRESULT OPCClient::PutValueToOPC_Async( AG_OpcDA::Item * item )
 {
 	CString str;
@@ -954,14 +981,14 @@ HRESULT OPCClient::PutValueToOPC_Async( AG_OpcDA::Item * item )
 	m_Group->QueryInterface( &AsyncIO );
 
 	if( AsyncIO == NULL ) {
-		m_DataReceiver->log_message( LogError, "Не удалось получить интерфейс IOPCAsyncIO2" );
+		m_DataReceiver->log_message( LogError, "Failed to get interface IOPCAsyncIO2" );
 		return E_FAIL;
 	}
 	DWORD cancelID = 0;
 
 	hr = AsyncIO->Write( 1, &item->hServerHandle, &item->value,rand(),&cancelID, &pErrors);
 	if( FAILED(hr) /*|| FAILED(pErrors[0])*/) {
-		m_DataReceiver->log_message( LogError, "Параметр [%s] не передан", (LPCTSTR)item->name);
+		m_DataReceiver->log_message( LogError, "Parameter [%s] is not passed", (LPCTSTR)item->name);
 		hr = E_FAIL;	
 
 	}
@@ -996,7 +1023,7 @@ HRESULT OPCClient::PutValueToOPC_Async( AG_OpcDA::Item * item )
 }
 
 HRESULT OPCClient::PutValuesToOPC_Sync( int nValues, 
-									   CString names[], // для диагностики
+									   CString names[], // for diagnostics
 									   DWORD serverHdls[], 
 									   VARIANT values[] )
 {
@@ -1020,7 +1047,7 @@ HRESULT OPCClient::PutValuesToOPC_Sync( int nValues,
 	stringstream sst; sst << "Sync Write finished. hr = " << hr;
 
 	if( FAILED(hr) /*|| FAILED(pErrors[0])*/) {
-		m_DataReceiver->log_message( LogError, "Параметр(ы) не передан");
+		m_DataReceiver->log_message( LogError, "Parameter(s) not transferred to");
 		hr = E_FAIL;	
 
 		if( pErrors != NULL)
@@ -1056,7 +1083,7 @@ HRESULT OPCClient::PutValuesToOPC_Sync( int nValues,
 	return hr;
 }
 
-/// записать значение параметра в сервер Sync 
+/// Write value to Sync server 
 HRESULT OPCClient::PutValueToOPC_Sync( AG_OpcDA::Item * item )
 {
 	HRESULT hr = S_OK;	
@@ -1080,7 +1107,7 @@ HRESULT OPCClient::PutValueToOPC_Sync( AG_OpcDA::Item * item )
 	stringstream sst; sst << "Sync Write finished. hr = " << hr;
 
 	if( FAILED(hr) /*|| FAILED(pErrors[0])*/) {
-		m_DataReceiver->log_message( LogError, "Параметр [%s] не передан", (LPCTSTR)item->name);
+		m_DataReceiver->log_message( LogError, "Parameter [%s] is not passed", (LPCTSTR)item->name);
 		hr = E_FAIL;	
 
 		if( pErrors != NULL)
@@ -1111,9 +1138,7 @@ HRESULT OPCClient::PutValueToOPC_Sync( AG_OpcDA::Item * item )
 					(LPCTSTR)item->name  ); 
 				break;
 			}
-
 		}
-
 	}
 
 	if( pErrors )
@@ -1131,3 +1156,4 @@ BrowseItems OPCClient::Browse()
 	////TODO
 	return itms;
 }
+
