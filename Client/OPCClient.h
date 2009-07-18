@@ -101,8 +101,9 @@ public:
 	*/
 	OPCHANDLE AddTag( OPCHANDLE clientHandle, LPCTSTR tag_name, VARTYPE type );
 	
-	/// remove and unsubscribe tag
-	void RemoveTag( OPCHANDLE clientHandle ); 
+	/// Remove this parameter from the group. (unsubscribe tag)
+	// warning - this function not tested complexly, using its be careful
+	bool RemoveTag( OPCHANDLE clientHandle ); 
 
 	bool WriteValue( DWORD clientID, FILETIME &time, VARIANT &value, WORD Quality );
 	bool WriteValue( LPCTSTR name, FILETIME &time, VARIANT &value, WORD Quality );
@@ -116,10 +117,12 @@ private:
 
 	CComPtr<IOPCItemMgt> m_itemMgt;
 
-	HRESULT AddParamToGroup( AG_OpcDA::Item* item/*, OPCHANDLE clientID*/ );
+	HRESULT AddParamToGroup( AG_OpcDA::Item* item );
 	HRESULT AddParamsTogetherToGroup( IOPCItemMgt *itemMgt, DWORD &m_ItemsAdded  );
 	HRESULT AddParamsToGroup( DWORD &m_ItemsAdded );
 	void fillOPCITEMDEF( AG_OpcDA::Item *item, OPCITEMDEF *idef );
+
+	HRESULT RemoveParamFromGroup( AG_OpcDA::Item* item );
 
 	void ReportError( HRESULT hr ,LPCTSTR name);
 

@@ -56,7 +56,7 @@ public:
 
 	CItemList() 
 	{ 
-		/// заполняем нулевой индекс
+		/// fill zero index
 		push_back(NULL);
 	}
 };
@@ -78,9 +78,9 @@ public:
 	mutex_t		m_Sect;
 
 
-	DWORD m_ItemsAdded;
+//	DWORD m_ItemsAdded;
 
-	COpcDaAbstractor() :  m_ItemsAdded(0)
+	COpcDaAbstractor() //:  m_ItemsAdded(0)
 	{
 	}
 
@@ -128,13 +128,13 @@ public:
 		return item->hClientHandle;
 	}
 
-	/// получить параметр по его хендлу 
+	/// get item by its handle 
 	Item* getItemByClientHandle(OPCHANDLE h)
 	{
 		critical_section locker(m_Sect);
 		return m_ItemsMap[ h ];
 		//if( h >= m_items.size() )
-		//	return NULL; // некорректный параметр
+		//	return NULL; // uncorrect parametr
 		//
 		//return m_items[h];
 	}
@@ -149,7 +149,7 @@ public:
 	{
 		critical_section locker(m_Sect);
 		if( h >= m_items.size() )
-			return ; // некорректный параметр
+			return ; // incorrect param
 
 		Item *it = m_items[h];
 		if( it != NULL ) {

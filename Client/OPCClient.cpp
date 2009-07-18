@@ -513,10 +513,16 @@ OPCHANDLE OPCClient::AddTag( OPCHANDLE clientHandle, LPCTSTR tag_name, VARTYPE t
 	return clientID;
 }
 
-/// Remove this parameter from the group. XXX: TODO: Not implemented.
-void OPCClient::RemoveTag( OPCHANDLE /*clientHandle */)
+/// Remove this parameter from the group. (unsubscribe tag)
+// warning - this function not tested complexly, using its be careful
+bool OPCClient::RemoveTag( OPCHANDLE clientHandle )
 {
-	//XXX TODO: please, finish me!
+	AG_OpcDA::Item *item = getItemByClientHandle( clientHandle );
+	if( NULL == item )
+		return false;
+
+	HRESULT hr = RemoveParamFromGroup( item );
+	return SUCCEEDED(hr);
 }
 
 /// Read Value Synchronously
@@ -655,7 +661,34 @@ void clearOPCITEMDEF( OPCITEMDEF *idef, int count = 1 )
 		}
 }
 
-HRESULT OPCClient::AddParamToGroup( AG_OpcDA::Item* item/*, OPCHANDLE clientID*/ )
+HRESULT OPCClient::RemoveParamFromGroup( AG_OpcDA::Item* item )
+{
+	HRESULT hr = S_OK;
+	if( item == NULL ) return E_POINTER;
+
+	HRESULT *pErrors = NULL;
+	OPCHANDLE servHandle = item->hServerHandle;
+
+	if( m_itemMgt == NULL && m_Group == NULL) return E_FAIL;
+	if( m_itemMgt == NULL ) 
+		m_Group.QueryInterface( &m_itemMgt );
+	ATLASSERT( m_itemMgt );
+
+	hr = m_itemMgt->RemoveItems(1, &servHandle, &pErrors);
+	if( FAILED(hr) )
+		return hr;
+	if( pErrors ) {
+		if( FAILED(*pErrors) )
+			hr = *pErrors;
+		CoTaskMemFree( pErrors );
+	}
+
+	if( SUCCEEDED(hr) )
+		freeItem( item->hClientHandle );
+	return hr;
+}
+
+HRESULT OPCClient::AddParamToGroup( AG_OpcDA::Item* item )
 {
 	HRESULT hr = S_OK;
 
@@ -1023,7 +1056,7 @@ HRESULT OPCClient::PutValueToOPC_Async( AG_OpcDA::Item * item )
 }
 
 HRESULT OPCClient::PutValuesToOPC_Sync( int nValues, 
-									   CString names[], // for diagnostics
+									   CString /*names*/[], // for diagnostics
 									   DWORD serverHdls[], 
 									   VARIANT values[] )
 {
