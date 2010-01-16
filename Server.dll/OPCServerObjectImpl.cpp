@@ -171,10 +171,12 @@ int COPCServerObjectImpl::AddTag( LPCTSTR name, VARTYPE type, bool readOnly)
 	{
 		DWORD new_index = g_NameIndex[ name ];
 
-//		int ret = g_BrowseItems.size();
-		g_BrowseItems.push_back( CItemForBrowse( new_index, name , type, 
-			readOnly ? OPC_READABLE : OPC_READABLE | OPC_WRITEABLE ) );
+		DWORD writeFlag = OPC_READABLE;
+		if( !readOnly )
+			writeFlag |= OPC_WRITEABLE;
 
+//		int ret = g_BrowseItems.size();
+		g_BrowseItems.push_back( CItemForBrowse( new_index, name , type, writeFlag ) );
 		return new_index;
 	}
 

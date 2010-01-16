@@ -59,43 +59,48 @@ public:
 		ZeroMemory( *ppErrors, sizeof(HRESULT) * dwCount );
 
 
-		for( DWORD i=0;i<dwCount; ++i) {
+		for( DWORD i=0;i<dwCount; ++i) 
+		{
 			OPCITEMDEF &pItem = pItemArray[i];
 			OPCITEMRESULT &pResult = (*ppAddResults)[i];
 
 			OPCHANDLE hServer = g_NameIndex[ CString(pItem.szItemID) ];
 
 			CBrowseItemsList::iterator browseIT = g_BrowseItems.find( hServer );
-			if( browseIT == g_BrowseItems.end() ) {
+			if( browseIT == g_BrowseItems.end() ) 
+			{
 				(*ppErrors)[i] = OPC_E_UNKNOWNITEMID;
 				res = S_FALSE;
 				continue;
 			}
 
-			ItemInGroup *newItem = NULL;
-			{
-				// CLockWrite locker( pT->m_ItemsAdded );
-				// if parametr already connected, returning fail 
-				ItemsInGroupMap::iterator f = pT->m_ItemsAdded.find( hServer /*, pItem.hClient */);
-				if( f != pT->m_ItemsAdded.end() ) {
-					(*ppErrors)[i] = E_FAIL;
-					continue;
-				}
-				newItem = new ItemInGroup( pItem.hClient, pItem.bActive );
-				pT->m_ItemsAdded.insert( hServer, newItem );
-				AtlTrace("Item Inserted. name=%s, hClient=%d\n", pItem.szItemID, pItem.hClient);
-				/// We specify to the subscriber to data acquisition /*m_DataCustomer.*/
-				pT->AcceptParam( hServer );
-			}
 			pResult.hServer = hServer;
 			pResult.vtCanonicalDataType = (*browseIT).type;
 			pResult.dwAccessRights = (*browseIT).dwAccessRights;
 			pResult.dwBlobSize = 0;
 			pResult.pBlob = NULL;
 
+			ItemInGroup *newItem = NULL;
+			{
+				// CLockWrite locker( pT->m_ItemsAdded );
+				// if parametr already connected, returning fail 
+				ItemsInGroupMap::iterator f = pT->m_ItemsAdded.find( hServer /*, pItem.hClient */);
+				if( f != pT->m_ItemsAdded.end() ) 
+				{
+					(*ppErrors)[i] = E_FAIL;
+					continue;
+				}
+				newItem = new ItemInGroup( pItem.hClient, pItem.bActive, pResult.dwAccessRights );
+				pT->m_ItemsAdded.insert( hServer, newItem );
+				AtlTrace("Item Inserted. name=%s, hClient=%d\n", pItem.szItemID, pItem.hClient);
+				/// We specify to the subscriber to data acquisition /*m_DataCustomer.*/
+				pT->AcceptParam( hServer );
+			}
+
 			/// send to client empty value after adding
 			CAG_Value adapt ( pT->m_Manager->getLastValue( hServer ) );
-			if( adapt.isNull() ) { 
+			if( adapt.isNull() ) 
+			{ 
 				// if value ampty, set data type from CanonicalDataType
 				adapt.m_NameId = hServer;
 				adapt.m_Name = pItem.szItemID;

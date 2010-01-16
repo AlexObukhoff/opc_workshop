@@ -39,13 +39,24 @@ public:
 	VARTYPE type;
 //	volatile LONG modified;
 	BOOL bActive;
+	DWORD dwAccessRights;
 
-	ItemInGroup(OPCHANDLE h = 0,BOOL act = FALSE) : 
+	ItemInGroup(OPCHANDLE h = 0,BOOL act = FALSE, DWORD access = 0 ) : 
 		  hClient(h), 
 //		  modified(FALSE), 
 		  bActive(act), 
-		  type(VT_EMPTY) 
+		  type(VT_EMPTY),
+		  dwAccessRights(access)
 	{ 
+	}
+
+    bool isWritable() const
+	{
+		return ((dwAccessRights & OPC_WRITEABLE) != 0 );
+	}
+	bool isReadable() const
+	{
+		return ((dwAccessRights & OPC_READABLE) != 0 );
 	}
 };
 
@@ -58,22 +69,27 @@ public:
 
 	typedef std::map<OPCHANDLE,ItemInGroup*>::iterator iterator;
 
-	iterator find (OPCHANDLE h) {
+	iterator find (OPCHANDLE h) 
+	{
 		return m_items_map.find(h);
 	}
 
-	iterator begin() {
+	iterator begin() 
+	{
 		return m_items_map.begin();
 	}
-	iterator end() {
+	iterator end() 
+	{
 		return m_items_map.end();
 	}
 
-	void insert(OPCHANDLE hdl, ItemInGroup *item) {
+	void insert(OPCHANDLE hdl, ItemInGroup *item) 
+	{
 		m_items_map.insert(make_pair(hdl, item));
 	}
 
-	void erase(iterator where) {
+	void erase(iterator where) 
+	{
 		m_items_map.erase(where);
 	}
 };

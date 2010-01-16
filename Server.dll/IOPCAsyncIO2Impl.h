@@ -45,7 +45,8 @@ public:
 
 		*ppErrors = allocate_buffer<HRESULT> ( dwCount );
 
-		for( DWORD i=0;i<dwCount; ++i ) {
+		for( DWORD i=0;i<dwCount; ++i ) 
+		{
 			thread::CCritSectLocker locker( pT->m_AsyncReadSect );
 			pT->m_AsyncRead.insert( phServer[i] );
 		}
@@ -91,12 +92,13 @@ public:
 		ItemsInGroupMap::iterator it;
 		CLockRead locker( pT->m_ItemsAdded );
 		
-		for( it = pT->m_ItemsAdded.begin(); it != pT->m_ItemsAdded.end(); ++it ) {
+		for( it = pT->m_ItemsAdded.begin(); it != pT->m_ItemsAdded.end(); ++it ) 
+		{
 			ItemInGroup* item = (*it).second;
-			if( item->bActive ) {
+			if( item->bActive ) 
+			{
 				thread::CCritSectLocker locker( pT->m_AsyncReadSect );
 				pT->m_AsyncRead.insert( (*it).first );
-
 			}
 		}
 

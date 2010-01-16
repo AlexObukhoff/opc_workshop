@@ -20,7 +20,8 @@
  
  #pragma once
 
-namespace Ag_OPC {
+namespace Ag_OPC 
+{
 
 template <class T>
 class IOPCSyncIOImpl :
@@ -48,9 +49,11 @@ public:
 
 		CLockRead locker2( pT->m_ItemsAdded );
 
-		for(DWORD i=0;i< dwCount;i++) {
+		for(DWORD i=0;i< dwCount;i++) 
+		{
 			/// if not subscribed for this parametr 
-			if( ! pT->isAcceptedParam( phServer[i] ) ) {
+			if( ! pT->isAcceptedParam( phServer[i] ) ) 
+			{
 				(*ppItemValues)[i].wQuality = OPC_QUALITY_OUT_OF_SERVICE;
 				ret = S_FALSE;
 				(*ppErrors)[i] = E_FAIL;
@@ -61,7 +64,8 @@ public:
 
 			/// read last value of item 
 
-			if( item && pT->getLastValue( phServer[i], value ) ) {
+			if( item && pT->getLastValue( phServer[i], value ) && item->isReadable() ) 
+			{
 				(*ppItemValues)[i].hClient = item->hClient;
 				(*ppItemValues)[i].wQuality = OPC_QUALITY_GOOD;
 				(*ppItemValues)[i].ftTimeStamp = value.m_Time;
@@ -69,7 +73,8 @@ public:
 				VariantCopy( &(*ppItemValues)[i].vDataValue, &value.m_Value );
 				(*ppErrors)[i] = S_OK;
 			}
-			else {
+			else 
+			{
 				(*ppItemValues)[i].wQuality = OPC_QUALITY_OUT_OF_SERVICE;
 				ret = S_FALSE;
 				(*ppErrors)[i] = E_FAIL;
@@ -115,23 +120,36 @@ public:
 
 		*ppErrors = allocate_buffer<HRESULT> ( dwCount );
 
-		for(i=0;i<dwCount; ++i) {
-			if( !pT->isAcceptedParam( phServer[i] ) ) {
+		for(i=0;i<dwCount; ++i) 
+		{
+			if( !pT->isAcceptedParam( phServer[i] ) ) 
+			{
 				(*ppErrors)[i] = E_FAIL;
 				hr = S_FALSE;
 			}
-			else {
-				CAG_Value adapt;
-				adapt.m_NameId = phServer[i];
-				adapt.m_Name = g_NameIndex[ adapt.m_NameId ];
-				CoFileTimeNow( &adapt.m_Time );
-				adapt.m_Value = pItemValues[i];
-				adapt.m_Type = adapt.m_Value.vt;
+			else
+			{
+				ItemInGroup *item = (*pT->m_ItemsAdded.find( phServer[i] )).second;
 
-				adapt.m_Value_src = CAG_Value::SRC_CLIENT;
+				if( item && item->isWritable() )
+				{
+					CAG_Value adapt;
+					adapt.m_NameId = phServer[i];
+					adapt.m_Name = g_NameIndex[ adapt.m_NameId ];
+					CoFileTimeNow( &adapt.m_Time );
+					adapt.m_Value = pItemValues[i];
+					adapt.m_Type = adapt.m_Value.vt;
 
-				if( pT->m_Manager )
-					pT->m_Manager->pushNewData( adapt );
+					adapt.m_Value_src = CAG_Value::SRC_CLIENT;
+
+					if( pT->m_Manager )
+						pT->m_Manager->pushNewData( adapt );
+				}
+				else
+				{
+					(*ppErrors)[i] = E_FAIL;
+					hr = S_FALSE;
+				}
 			}
 		}
 

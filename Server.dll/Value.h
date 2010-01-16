@@ -75,7 +75,8 @@ public:
 	CString m_Name;			// text name of parametr 
 	VARTYPE m_Type;
 	
-	CAG_Value() { 
+	CAG_Value() 
+	{ 
 		m_Type = VT_EMPTY; 
 		m_Value_src = SRC_SERVER;
 		m_Quality = 192; //йда:  QUAL_GOOD - by default consider quality is good

@@ -155,7 +155,8 @@ public:
 	virtual bool Subscribe( COPCDataManager *man );
 	virtual bool Unsubscribe();
 
-	enum CustomerType {
+	enum CustomerType 
+	{
 		PUSH_DATA_BY_ONE,
 		PUSH_DATA_BY_PACK
 	};

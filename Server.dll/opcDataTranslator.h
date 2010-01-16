@@ -36,12 +36,16 @@ public:
 	{
 		CAG_Value* adapt = NULL;
 
-		while( (adapt = m_Queue.pop()) != NULL ) {
-			if( m_Receiver && adapt->m_Value_src == CAG_Value::SRC_CLIENT) {
-				if( m_AcceptAllData ) {
+		while( (adapt = m_Queue.pop()) != NULL ) 
+		{
+			if( m_Receiver && adapt->m_Value_src == CAG_Value::SRC_CLIENT) 
+			{
+				if( m_AcceptAllData ) 
+				{
 					m_Receiver->newData( adapt->m_Name, adapt->m_NameId, adapt->m_Time, adapt->m_Value, adapt->m_Quality );
 				}
-				else {
+				else 
+				{
 					thread::CCritSectLocker locker(&m_AcceptedParamsSect);
 					if( m_AcceptedParams.find( adapt->m_NameId ) != m_AcceptedParams.end())
 						m_Receiver->newData( adapt->m_Name, adapt->m_NameId, adapt->m_Time, adapt->m_Value, adapt->m_Quality );
@@ -57,3 +61,4 @@ public:
 	}
 
 };
+

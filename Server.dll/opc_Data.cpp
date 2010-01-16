@@ -59,7 +59,8 @@ COPCDataManager::COPCDataManager()
 COPCDataManager::~COPCDataManager()
 {
 	/// free onself from links
-	while( m_CustomerList.size() ) {
+	while( m_CustomerList.size() ) 
+	{
 		COPCDataCustomerList::iterator it = m_CustomerList.begin();
 		(*it)->Unsubscribe();
 	}
@@ -107,7 +108,8 @@ HRESULT COPCDataManager::pushNewData( CAG_ValueVector *vect )
 
 	m_Queue.push( vect );
 	// if not running - execute manager thread 
-	if(! isRunning() ) Execute();
+	if(! isRunning() ) 
+		Execute();
 	// wakeup thread for processing queue
 	WakeUp();
 
@@ -143,13 +145,16 @@ void COPCDataManager::step()
 	CAG_ValueVector *vect = NULL;
 	COPCDataCustomerList::iterator it;
 
-	while((vect = m_Queue.pop()) != NULL) {
+	while((vect = m_Queue.pop()) != NULL) 
+	{
 		CAG_ValueVector &V = *vect;
 		thread::CCritSectLocker locker(&m_CustomerSect);
 
 
-		try {
-			for(size_t i=0;i<V.size();++i)  {
+		try 
+		{
+			for(size_t i=0;i<V.size();++i)  
+			{
 				CAG_Value &val = V[i];
 
 				{
